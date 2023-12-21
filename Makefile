@@ -464,4 +464,4 @@ clean:
 	$(RM) $(call FixPath, $(TARGET).bin $(TARGET).packed.bin $(TARGET) $(OBJS) $(DEPS))
 
 run:
-	make clean && make -j8 && make flash
+	make clean && make -j8 && sleep 5 && make flash
