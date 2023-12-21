@@ -57,6 +57,13 @@ Anyway, have fun.
    * `ENABLE_SPECTRUM_SHOW_CHANNEL_NAME` shows channel number and channel name of the peak frequency in spectrum
    * `ENABLE_ULTRA_LOW_POWER_TX` flag allows to transmit with ultra low power (thanks to egzumer work) for local testing of communication between radios.
 
+ ## Keyboard shortcuts
+    * In `VFO mode` long press `5` to enter `scan range mode`
+    * In `VFO mode` long press `5` then press `F+5` to enter `spectrum scan range mode`
+    * Press `F+5` to enter `spectrum mode`
+    * While in `spectrum mode` press `MENU` to enter `fine tuning mode`
+    * While in `spectrum mode` or `fine tuning mode` short press `PTT` to copy current modulation, step, frequency, bw and enter `VFO mode`
+ 
  ## Manual
 
 * [Radio operation](https://github.com/egzumer/uv-k5-firmware-custom/wiki/Radio-operation)
@@ -134,7 +141,8 @@ ENABLE_BYP_RAW_DEMODULATORS       := 0       additional BYP (bypass?) and RAW de
 ENABLE_BLMIN_TMP_OFF              := 0       additional function for configurable buttons that toggles `BLMin` on and off wihout saving it to the EEPROM
 ENABLE_SCAN_RANGES                := 1       scan range mode for frequency scanning, see wiki for instructions (radio operation -> frequency scanning)
 ENABLE_SPECTRUM_COPY_VFO          := 1       pressing MENU in spectrum mode will exit and copy current peak frequency to current VFO
-ENABLE_SPECTRUM_SHOW_CHANNEL_NAME := 1 shows channel number and channel name of the peak frequency in spectrum
+ENABLE_SPECTRUM_SHOW_CHANNEL_NAME := 1       shows channel number and channel name of the peak frequency in spectrum
+ENABLE_ULTRA_LOW_POWER_TX         := 0      transmits with ultra low power. useful for dev/testing.
 ```
 
 
