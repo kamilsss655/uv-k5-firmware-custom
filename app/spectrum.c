@@ -1306,6 +1306,9 @@ static void Tick() {
 }
 
 void APP_RunSpectrum() {
+  currentFreq = initialFreq =
+    gEeprom.VfoInfo[gEeprom.TX_VFO].pRX->Frequency;
+
   #ifdef ENABLE_SCAN_RANGES
     if(gScanRangeStart) {
       currentFreq = initialFreq = gScanRangeStart;
@@ -1319,9 +1322,6 @@ void APP_RunSpectrum() {
     }
     else
   #endif
-  // REMOVE IF IT CENTERS:
-    currentFreq = initialFreq = gTxVfo->pRX->Frequency -
-                                ((GetStepsCount() / 2) * GetScanStep());
 
   BackupRegisters();
 
