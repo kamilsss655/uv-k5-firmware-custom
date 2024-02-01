@@ -14,10 +14,14 @@
 #include "frequencies.h"
 #include "driver/system.h"
 #include "app/messenger.h"
+#include "app/action.h"
 #include "ui/ui.h"
 #ifdef ENABLE_ENCRYPTION
 	#include "helper/crypto.h"
 #endif
+
+#include "bsp/dp32g030/gpio.h"
+#include "driver/gpio.h"
 
 #if (defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)) || (defined(ENABLE_MESSENGER_UART))
     #include "driver/uart.h"
@@ -727,6 +731,16 @@ void MSG_HandleReceive(){
 				snprintf(rxMessage[3], PAYLOAD_LENGTH + 2, "< %s", dataPacket.data.payload);
 			#else
 				snprintf(rxMessage[3], PAYLOAD_LENGTH + 2, "< %s", dataPacket.data.payload);
+			#endif
+			#ifdef ENABLE_MESSENGER_LED
+			if(strncmp((char*)dataPacket.data.payload,"LED", 3) == 0){
+				gFlashLightState = dataPacket.data.payload[3]-'0';
+				if(gFlashLightState){
+					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+				} else {
+					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+				}
+			}
 			#endif
 			#ifdef ENABLE_MESSENGER_UART
 				UART_printf("SMS<%s\r\n", dataPacket.data.payload);
