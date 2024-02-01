@@ -27,7 +27,7 @@
 #include "settings.h"
 #include "ui/helper.h"
 
-void UI_DisplayFM(void)
+void UI_DisplayFM_text(char *text)
 {
 	char         String[16];
 
@@ -38,15 +38,20 @@ void UI_DisplayFM(void)
 	UI_PrintString(String, 0, 127, 0, 12);
 
 	memset(String, 0, sizeof(String));
-
+	strcpy(String, text);
 	UI_PrintString(String, 0, 127, 2, 10);
 
 	memset(String, 0, sizeof(String));
 
 	sprintf(String, "%3d.%d", gEeprom.FM_FrequencyPlaying / 10, gEeprom.FM_FrequencyPlaying % 10);
-	UI_DisplayFrequency(String, 32, 4, true);			
+	UI_DisplayFrequency(String, 32, 4, true);
 
 	ST7565_BlitFullScreen();
+}
+
+void UI_DisplayFM(void)
+{
+	UI_DisplayFM_text("");
 }
 
 #endif

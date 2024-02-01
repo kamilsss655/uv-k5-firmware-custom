@@ -29,6 +29,7 @@
 #include "misc.h"
 #include "settings.h"
 #include "ui/ui.h"
+#include "ui/fmradio.h"
 
 const uint16_t FM_RADIO_MAX_FREQ = 1080; // 108  Mhz
 const uint16_t FM_RADIO_MIN_FREQ = 875;  // 87.5 Mhz
@@ -62,6 +63,7 @@ static void Key_EXIT()
 
 static void Key_UP_DOWN(bool direction)
 {
+	UI_DisplayFM_text("[SCN]");
 	BK1080_TuneNext(direction);
 	gEeprom.FM_FrequencyPlaying = BK1080_GetFrequency();
 	// save
@@ -69,12 +71,12 @@ static void Key_UP_DOWN(bool direction)
 }
 
 void FM_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
-{	
+{
 	uint8_t state = bKeyPressed + 2 * bKeyHeld;
 
 	if (state == 0) {
 		switch (Key)
-		{	
+		{
 			case KEY_UP:
 				Key_UP_DOWN(true);
 				break;
