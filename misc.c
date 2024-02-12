@@ -51,7 +51,6 @@ const uint16_t    dual_watch_count_after_tx_10ms   =  3600 / 10;   // 3.6 sec af
 const uint16_t    dual_watch_count_after_rx_10ms   =  1000 / 10;   // 1 sec after RX ends ?
 const uint16_t    dual_watch_count_after_1_10ms    =  5000 / 10;   // 5 sec
 const uint16_t    dual_watch_count_after_2_10ms    =  3600 / 10;   // 3.6 sec
-const uint16_t    dual_watch_count_noaa_10ms       =    70 / 10;   // 70ms
 #ifdef ENABLE_VOX
 	const uint16_t dual_watch_count_after_vox_10ms  =   200 / 10;   // 200ms
 #endif
@@ -73,10 +72,6 @@ const uint16_t    power_save2_10ms                 =   200 / 10;   // 200ms
 #ifdef ENABLE_VOX
 	const uint16_t    vox_stop_count_down_10ms         =  1000 / 10;   // 1 second
 #endif
-
-const uint16_t    NOAA_countdown_10ms              =  5000 / 10;   // 5 seconds
-const uint16_t    NOAA_countdown_2_10ms            =   500 / 10;   // 500ms
-const uint16_t    NOAA_countdown_3_10ms            =   200 / 10;   // 200ms
 
 const uint32_t    gDefaultAesKey[4]                = {0x4AA5CC60, 0x0312CC5F, 0xFFD2DABB, 0x6BBA7F92};
 

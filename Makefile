@@ -13,7 +13,6 @@ ENABLE_LTO                    := 1
 ENABLE_UART                   := 1
 ENABLE_AIRCOPY                := 0
 ENABLE_FMRADIO                := 1
-ENABLE_NOAA                   := 0
 ENABLE_VOICE                  := 0
 ENABLE_VOX                    := 1
 ENABLE_ALARM                  := 0
@@ -277,9 +276,6 @@ ifeq ($(ENABLE_BIG_FREQ),1)
 endif
 ifeq ($(ENABLE_SMALL_BOLD),1)
 	CFLAGS  += -DENABLE_SMALL_BOLD
-endif
-ifeq ($(ENABLE_NOAA),1)
-	CFLAGS  += -DENABLE_NOAA
 endif
 ifeq ($(ENABLE_VOICE),1)
 	CFLAGS  += -DENABLE_VOICE
