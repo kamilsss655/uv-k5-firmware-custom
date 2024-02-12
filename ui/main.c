@@ -114,7 +114,7 @@ void UI_DisplayAudioBar(void)
 	{
 		return;  // screen is in use
 	}
-			
+
 	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 		if (gAlarmState != ALARM_STATE_OFF)
 			return;
@@ -175,13 +175,13 @@ static void DisplayRSSIBar(const int16_t rssi, const bool now)
 			memset(p_line, 0, LCD_WIDTH);
 
 		sLevelAttributes sLevelAtt;
-		
+
 		sLevelAtt = GetSLevelAttributes(rssi, gRxVfo->freq_config_RX.Frequency);
-		
+
 		uint8_t overS9Bars = MIN(sLevelAtt.over/10, 4);
-		
+
 		if(overS9Bars == 0) {
-			sprintf(str, "% 4d S%d", sLevelAtt.dBmRssi, sLevelAtt.sLevel); 
+			sprintf(str, "% 4d S%d", sLevelAtt.dBmRssi, sLevelAtt.sLevel);
 		}
 		else {
 			sprintf(str, "% 4d  %2d", sLevelAtt.dBmRssi, sLevelAtt.over);
@@ -222,14 +222,14 @@ static void DisplayRSSIBar(const int16_t rssi, const bool now)
 void UI_UpdateRSSI(const int16_t rssi, const int vfo)
 {
 	(void)vfo;  // unused
-	
+
 	// optional larger RSSI dBm, S-point and bar level
 
 	if (gCurrentFunction == FUNCTION_RECEIVE ||
 		gCurrentFunction == FUNCTION_MONITOR ||
 		gCurrentFunction == FUNCTION_INCOMING)
 	{
-		
+
 		DisplayRSSIBar(rssi, true);
 	}
 
@@ -262,7 +262,7 @@ void UI_DisplayMain(void)
 		ST7565_BlitFullScreen();
 		return;
 	}
-							
+
 	unsigned int activeTxVFO = gRxVfoIsActive ? gEeprom.RX_VFO : gEeprom.TX_VFO;
 
 	for (vfo_num = 0; vfo_num < 2; vfo_num++)
@@ -289,8 +289,8 @@ void UI_DisplayMain(void)
 
 			if (
 #ifdef ENABLE_DTMF_CALLING
-				gDTMF_CallState != DTMF_CALL_STATE_NONE || gDTMF_IsTx || 
-#endif				
+				gDTMF_CallState != DTMF_CALL_STATE_NONE || gDTMF_IsTx ||
+#endif
 				gDTMF_InputMode)
 			{	// show DTMF stuff
 #ifdef ENABLE_DTMF_CALLING
@@ -310,7 +310,7 @@ void UI_DisplayMain(void)
 						strcpy(String, (gDTMF_State == DTMF_STATE_TX_SUCC) ? "DTMF TX(SUCC)" : "DTMF TX");
 				}
 				else
-#endif				
+#endif
 				{
 					sprintf(String, ">%s", gDTMF_InputBox);
 				}
@@ -401,20 +401,6 @@ void UI_DisplayMain(void)
 			sprintf(String, "F%u%s", 1 + gEeprom.ScreenChannel[vfo_num] - FREQ_CHANNEL_FIRST, buf);
 			UI_PrintStringSmall(String, x, 0, line + 1);
 		}
-#ifdef ENABLE_NOAA
-		else
-		{
-			if (gInputBoxIndex == 0 || gEeprom.TX_VFO != vfo_num)
-			{	// channel number
-				sprintf(String, "N%u", 1 + gEeprom.ScreenChannel[vfo_num] - NOAA_CHANNEL_FIRST);
-			}
-			else
-			{	// user entering channel number
-				sprintf(String, "N%u%u", '0' + gInputBox[0], '0' + gInputBox[1]);
-			}
-			UI_PrintStringSmall(String, 7, 0, line + 1);
-		}
-#endif
 
 		// ************
 
@@ -611,7 +597,7 @@ void UI_DisplayMain(void)
 			default:
 				s = gModulationStr[mod];
 			break;
-		}		
+		}
 		UI_PrintStringSmall(s, LCD_WIDTH + 24, 0, line + 1);
 
 		if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
@@ -687,9 +673,9 @@ void UI_DisplayMain(void)
 #endif
 						)
 						return;
-						
+
 					center_line = CENTER_LINE_DTMF_DEC;
-					
+
 					strcpy(String, "DTMF ");
 					strcat(String, gDTMF_RX_live + idx);
 					UI_PrintStringSmall(String, 2, 0, 3);
@@ -705,7 +691,7 @@ void UI_DisplayMain(void)
 						return;
 
 					center_line = CENTER_LINE_DTMF_DEC;
-					
+
 					strcpy(String, "DTMF ");
 					strcat(String, gDTMF_RX + idx);
 					UI_PrintStringSmall(String, 2, 0, 3);

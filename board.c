@@ -65,10 +65,10 @@ static const uint32_t gDefaultFrequencyTable[] =
 		FLASH_Init(FLASH_READ_MODE_1_CYCLE);
 		FLASH_ConfigureTrimValues();
 		SYSTEM_ConfigureClocks();
-	
+
 		overlay_FLASH_MainClock       = 48000000;
 		overlay_FLASH_ClockMultiplier = 48;
-	
+
 		FLASH_Init(FLASH_READ_MODE_2_CYCLE);
 	}
 #endif
@@ -523,9 +523,6 @@ void BOARD_EEPROM_Init(void)
 	gEeprom.CHAN_1_CALL          = IS_MR_CHANNEL(Data[0]) ? Data[0] : MR_CHANNEL_FIRST;
 	gEeprom.SQUELCH_LEVEL        = (Data[1] < 10) ? Data[1] : 1;
 	gEeprom.TX_TIMEOUT_TIMER     = (Data[2] < 11) ? Data[2] : 1;
-	#ifdef ENABLE_NOAA
-		gEeprom.NOAA_AUTO_SCAN   = (Data[3] <  2) ? Data[3] : false;
-	#endif
 	gEeprom.KEY_LOCK             = (Data[4] <  2) ? Data[4] : false;
 	#ifdef ENABLE_VOX
 		gEeprom.VOX_SWITCH       = (Data[5] <  2) ? Data[5] : false;
@@ -555,10 +552,6 @@ void BOARD_EEPROM_Init(void)
 	gEeprom.MrChannel[1]       = IS_MR_CHANNEL(Data[4])    ? Data[4] : MR_CHANNEL_FIRST;
 	gEeprom.FreqChannel[0]     = IS_FREQ_CHANNEL(Data[2])  ? Data[2] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
 	gEeprom.FreqChannel[1]     = IS_FREQ_CHANNEL(Data[5])  ? Data[5] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
-	#ifdef ENABLE_NOAA
-		gEeprom.NoaaChannel[0] = IS_NOAA_CHANNEL(Data[6])  ? Data[6] : NOAA_CHANNEL_FIRST;
-		gEeprom.NoaaChannel[1] = IS_NOAA_CHANNEL(Data[7])  ? Data[7] : NOAA_CHANNEL_FIRST;
-	#endif
 
 #ifdef ENABLE_FMRADIO
 	EEPROM_ReadBuffer(0x0E88, Data, 8);
@@ -606,7 +599,7 @@ void BOARD_EEPROM_Init(void)
 		gEeprom.ALARM_MODE                 = (Data[0] <  2) ? Data[0] : true;
 	#endif
 	gEeprom.ROGER                          = (Data[1] <  3) ? Data[1] : ROGER_MODE_OFF;
-	// Data[2] empty slot 
+	// Data[2] empty slot
 	gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
 	gEeprom.BATTERY_TYPE                   = (Data[4] < BATTERY_TYPE_UNKNOWN) ? Data[4] : BATTERY_TYPE_1600_MAH;
 	gEeprom.SQL_TONE                       = (Data[5] <  ARRAY_SIZE(CTCSS_Options)) ? Data[5] : 50;
@@ -619,7 +612,7 @@ void BOARD_EEPROM_Init(void)
 	gEeprom.DTMF_GROUP_CALL_CODE         = DTMF_ValidateCodes((char *)(Data + 2), 1) ? Data[2] : '#';
 	gEeprom.DTMF_DECODE_RESPONSE         = (Data[3] <   4) ? Data[3] : 0;
 	gEeprom.DTMF_auto_reset_time         = (Data[4] <  61) ? Data[4] : (Data[4] >= 5) ? Data[4] : 10;
-#endif		
+#endif
 	gEeprom.DTMF_PRELOAD_TIME            = (Data[5] < 101) ? Data[5] * 10 : 300;
 	gEeprom.DTMF_FIRST_CODE_PERSIST_TIME = (Data[6] < 101) ? Data[6] * 10 : 100;
 	gEeprom.DTMF_HASH_CODE_PERSIST_TIME  = (Data[7] < 101) ? Data[7] * 10 : 100;
@@ -652,7 +645,7 @@ void BOARD_EEPROM_Init(void)
 		memset(gEeprom.KILL_CODE, 0, sizeof(gEeprom.KILL_CODE));
 		strcpy(gEeprom.KILL_CODE, "ABCD9");
 	}
-	
+
 	// 0EF0..0EF7
 	EEPROM_ReadBuffer(0x0EF0, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8))
@@ -673,7 +666,7 @@ void BOARD_EEPROM_Init(void)
 		memset(gEeprom.DTMF_UP_CODE, 0, sizeof(gEeprom.DTMF_UP_CODE));
 		strcpy(gEeprom.DTMF_UP_CODE, "12345");
 	}
-	
+
 	// 0F08..0F17
 	EEPROM_ReadBuffer(0x0F08, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
@@ -683,7 +676,7 @@ void BOARD_EEPROM_Init(void)
 		memset(gEeprom.DTMF_DOWN_CODE, 0, sizeof(gEeprom.DTMF_DOWN_CODE));
 		strcpy(gEeprom.DTMF_DOWN_CODE, "54321");
 	}
-	
+
 	// 0F18..0F1F
 	EEPROM_ReadBuffer(0x0F18, Data, 8);
 //	gEeprom.SCAN_LIST_DEFAULT = (Data[0] < 2) ? Data[0] : false;
@@ -716,7 +709,7 @@ void BOARD_EEPROM_Init(void)
     memmove(&gEeprom.RX_OFFSET, Data, 4);
 	// Make sure it inits with some sane value
 	gEeprom.RX_OFFSET = gEeprom.RX_OFFSET > RX_OFFSET_MAX ? 0 : gEeprom.RX_OFFSET;
-	
+
 	if (!gEeprom.VFO_OPEN)
 	{
 		gEeprom.ScreenChannel[0] = gEeprom.MrChannel[0];
@@ -730,7 +723,7 @@ void BOARD_EEPROM_Init(void)
 		if(att->__val == 0xff){
 			att->__val = 0;
 			att->band = 0xf;
-		}	
+		}
 	}
 	#ifdef ENABLE_ENCRYPTION
 		// 0F30..0F3F - load encryption key
@@ -740,18 +733,18 @@ void BOARD_EEPROM_Init(void)
 	#ifdef ENABLE_SPECTRUM_SHOW_CHANNEL_NAME
 		BOARD_gMR_LoadChannels();
 	#endif
-	
+
 }
 #ifdef ENABLE_SPECTRUM_SHOW_CHANNEL_NAME
 // Load channel frequencies, names into global memory lookup table
 void BOARD_gMR_LoadChannels() {
 	uint8_t  i;
 	uint32_t freq_buf;
-	
+
 	for (i = MR_CHANNEL_FIRST; i <= MR_CHANNEL_LAST; i++)
 	{
 		freq_buf = BOARD_fetchChannelFrequency(i);
-		
+
 		gMR_ChannelFrequencyAttributes[i].Frequency = RX_freq_check(freq_buf) == -1 ? 0 : freq_buf;
 		SETTINGS_FetchChannelName(gMR_ChannelFrequencyAttributes[i].Name, i);
 	}
@@ -784,7 +777,7 @@ void BOARD_EEPROM_LoadCalibration(void)
 		gEeprom.VOX1_THRESHOLD = 205-(20*gEeprom.VOX_LEVEL);
 		gEeprom.VOX0_THRESHOLD = 215-(20*gEeprom.VOX_LEVEL);
 	#endif
-	
+
 	//EEPROM_ReadBuffer(0x1F80 + gEeprom.MIC_SENSITIVITY, &Mic, 1);
 	//gEeprom.MIC_SENSITIVITY_TUNING = (Mic < 32) ? Mic : 15;
 	gEeprom.MIC_SENSITIVITY_TUNING = gMicGain_dB2[gEeprom.MIC_SENSITIVITY];
@@ -823,7 +816,7 @@ uint32_t BOARD_fetchChannelFrequency(const int channel)
 	} __attribute__((packed)) info;
 
 	EEPROM_ReadBuffer(channel * 16, &info, sizeof(info));
-	
+
 	return info.frequency;
 }
 #ifdef ENABLE_SPECTRUM_SHOW_CHANNEL_NAME
@@ -871,8 +864,10 @@ void BOARD_FactoryReset(bool bIsAll)
 	{
 		RADIO_InitInfo(gRxVfo, FREQ_CHANNEL_FIRST + BAND6_400MHz, 43350000);
 		gEeprom.RX_OFFSET = 0;
-		gEeprom.POWER_ON_PASSWORD = PASSWORD_OFF;
-		gEeprom.PASSWORD_WRONG_ATTEMPTS = 0;
+		#ifdef ENABLE_PWRON_PASSWORD
+			gEeprom.POWER_ON_PASSWORD = PASSWORD_OFF;
+			gEeprom.PASSWORD_WRONG_ATTEMPTS = 0;
+		#endif
 		SETTINGS_SaveSettings();
 		// set the first few memory channels
 		for (i = 0; i < ARRAY_SIZE(gDefaultFrequencyTable); i++)

@@ -101,7 +101,7 @@ enum
 	MENU_D_HOLD,
 #endif
 	MENU_D_PRE,
-#ifdef ENABLE_DTMF_CALLING	
+#ifdef ENABLE_DTMF_CALLING
 	MENU_D_DCD,
 	MENU_D_LIST,
 #endif
@@ -111,9 +111,6 @@ enum
 	MENU_VOL,
 	MENU_BAT_TXT,
 	MENU_AM,
-#ifdef ENABLE_NOAA
-	MENU_NOAA_S,
-#endif
 	MENU_RESET,
 	MENU_F_LOCK,
 	MENU_200TX,
@@ -174,13 +171,13 @@ extern const char        gSubMenu_MSG_MODULATION[3][10];
 typedef struct {char* name; uint8_t id;} t_sidefunction;
 extern const uint8_t 		 gSubMenu_SIDEFUNCTIONS_size;
 extern const t_sidefunction* gSubMenu_SIDEFUNCTIONS;
-				         
+
 extern bool              gIsInSubMenu;
-				         
+
 extern uint8_t           gMenuCursor;
 
 extern int32_t           gSubMenuSelection;
-				         
+
 extern char              edit_original[17];
 extern char              edit[17];
 extern int               edit_index;

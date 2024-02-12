@@ -104,14 +104,6 @@ static void CheckForIncoming(void)
 		if (gEeprom.DUAL_WATCH == DUAL_WATCH_OFF)
 		{	// dual watch is disabled
 
-			#ifdef ENABLE_NOAA
-				if (gIsNoaaMode)
-				{
-					gNOAA_Countdown_10ms = NOAA_countdown_3_10ms;
-					gScheduleNOAA        = false;
-				}
-			#endif
-
 			if (gCurrentFunction != FUNCTION_INCOMING)
 			{
 				FUNCTION_Select(FUNCTION_INCOMING);
@@ -195,13 +187,6 @@ static void HandleIncoming(void)
 
 	bFlag = (gScanStateDir == SCAN_OFF && gCurrentCodeType == CODE_TYPE_OFF);
 
-#ifdef ENABLE_NOAA
-	if (IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE) && gNOAACountdown_10ms > 0) {
-		gNOAACountdown_10ms = 0;
-		bFlag               = true;
-	}
-#endif
-
 	if (g_CTCSS_Lost && gCurrentCodeType == CODE_TYPE_CONTINUOUS_TONE) {
 		bFlag       = true;
 		gFoundCTCSS = false;
@@ -276,11 +261,7 @@ static void HandleReceive(void)
 
 	if (g_SquelchLost)
 	{
-		if (!gEndOfRxDetectedMaybe
-#ifdef ENABLE_NOAA
-			&& !IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE)
-#endif
-		){
+		if (!gEndOfRxDetectedMaybe){
 			switch (gCurrentCodeType)
 			{
 				case CODE_TYPE_OFF:
@@ -358,11 +339,6 @@ Skip:
 
 		case END_OF_RX_MODE_END:
 			RADIO_SetupRegisters(true);
-
-			#ifdef ENABLE_NOAA
-				if (IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
-					gNOAACountdown_10ms = 300;         // 3 sec
-			#endif
 
 			gUpdateDisplay = true;
 
@@ -456,18 +432,6 @@ void APP_StartListening(FUNCTION_Type_t Function)
 	if (gScanStateDir != SCAN_OFF)
 		CHFRSCANNER_Found();
 
-#ifdef ENABLE_NOAA
-	if (IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE) && gIsNoaaMode) {
-		gRxVfo->CHANNEL_SAVE        = gNoaaChannel + NOAA_CHANNEL_FIRST;
-		gRxVfo->pRX->Frequency      = NoaaFrequencyTable[gNoaaChannel];
-		gRxVfo->pTX->Frequency      = NoaaFrequencyTable[gNoaaChannel];
-		gEeprom.ScreenChannel[chan] = gRxVfo->CHANNEL_SAVE;
-
-		gNOAA_Countdown_10ms        = 500;   // 5 sec
-		gScheduleNOAA               = false;
-	}
-#endif
-
 	if (gScanStateDir == SCAN_OFF &&
 	    gEeprom.DUAL_WATCH != DUAL_WATCH_OFF)
 	{	// not scanning, dual watch is enabled
@@ -488,7 +452,7 @@ void APP_StartListening(FUNCTION_Type_t Function)
 	// if (gRxVfo->Modulation != MODULATION_FM){
 	// 	BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);
 	// }
-	// else 
+	// else
 	{
 	BK4819_WriteRegister(BK4819_REG_48,
 		(11u << 12)                |     // ??? .. 0 to 15, doesn't seem to make any difference
@@ -541,49 +505,20 @@ uint32_t APP_SetFrequencyByStep(VFO_Info_t *pInfo, int8_t direction)
 	return APP_SetFreqByStepAndLimits(pInfo, direction, Band_freq_min(pInfo->Band), frequencyBandTable[pInfo->Band].upper);
 }
 
-#ifdef ENABLE_NOAA
-	static void NOAA_IncreaseChannel(void)
-	{
-		if (++gNoaaChannel > 9)
-			gNoaaChannel = 0;
-	}
-#endif
-
 static void DualwatchAlternate(void)
 {
-	#ifdef ENABLE_NOAA
-		if (gIsNoaaMode)
-		{
-			if (!IS_NOAA_CHANNEL(gEeprom.ScreenChannel[0]) || !IS_NOAA_CHANNEL(gEeprom.ScreenChannel[1]))
-				gEeprom.RX_VFO = (gEeprom.RX_VFO + 1) & 1;
-			else
-				gEeprom.RX_VFO = 0;
+	// toggle between VFO's
+	gEeprom.RX_VFO = !gEeprom.RX_VFO;
+	gRxVfo         = &gEeprom.VfoInfo[gEeprom.RX_VFO];
 
-			gRxVfo = &gEeprom.VfoInfo[gEeprom.RX_VFO];
-
-			if (gEeprom.VfoInfo[0].CHANNEL_SAVE >= NOAA_CHANNEL_FIRST)
-				NOAA_IncreaseChannel();
-		}
-		else
-	#endif
-	{	// toggle between VFO's
-		gEeprom.RX_VFO = !gEeprom.RX_VFO;
-		gRxVfo         = &gEeprom.VfoInfo[gEeprom.RX_VFO];
-
-		if (!gDualWatchActive)
-		{	// let the user see DW is active
-			gDualWatchActive = true;
-			gUpdateStatus    = true;
-		}
+	if (!gDualWatchActive)
+	{	// let the user see DW is active
+		gDualWatchActive = true;
+		gUpdateStatus    = true;
 	}
 
 	RADIO_SetupRegisters(false);
 
-	#ifdef ENABLE_NOAA
-		gDualWatchCountdown_10ms = gIsNoaaMode ? dual_watch_count_noaa_10ms : dual_watch_count_toggle_10ms;
-	#else
-		gDualWatchCountdown_10ms = dual_watch_count_toggle_10ms;
-	#endif
 }
 
 static void CheckRadioInterrupts(void)
@@ -674,7 +609,7 @@ static void CheckRadioInterrupts(void)
 			{
 				g_VOX_Lost         = true;
 				gVoxPauseCountdown = 10;
-	
+
 				if (gEeprom.VOX_SWITCH)
 				{
 					if (gCurrentFunction == FUNCTION_POWER_SAVE && !gRxIdleMode)
@@ -682,12 +617,12 @@ static void CheckRadioInterrupts(void)
 						gPowerSave_10ms            = power_save2_10ms;
 						gPowerSaveCountdownExpired = 0;
 					}
-	
+
 					if (gEeprom.DUAL_WATCH != DUAL_WATCH_OFF && (gScheduleDualWatch || gDualWatchCountdown_10ms < dual_watch_count_after_vox_10ms))
 					{
 						gDualWatchCountdown_10ms = dual_watch_count_after_vox_10ms;
 						gScheduleDualWatch = false;
-	
+
 						// let the user see DW is not active
 						gDualWatchActive = false;
 						gUpdateStatus    = true;
@@ -762,18 +697,18 @@ void APP_EndTransmission(bool playRoger)
 			g_VOX_Lost         = false;
 			gVoxPauseCountdown = 0;
 		}
-	
+
 		#ifdef ENABLE_FMRADIO
 			if (gFmRadioMode)
 				return;
 		#endif
-	
+
 		if (gCurrentFunction == FUNCTION_RECEIVE || gCurrentFunction == FUNCTION_MONITOR)
 			return;
-	
+
 		if (gScanStateDir != SCAN_OFF)
 			return;
-	
+
 		if (gVOX_NoiseDetected)
 		{
 			if (g_VOX_Lost)
@@ -781,7 +716,7 @@ void APP_EndTransmission(bool playRoger)
 			else
 			if (gVoxStopCountdown_10ms == 0)
 				gVOX_NoiseDetected = false;
-	
+
 			if (gCurrentFunction == FUNCTION_TRANSMIT && !gPttIsPressed && !gVOX_NoiseDetected)
 			{
 				if (gFlagEndTransmission)
@@ -794,21 +729,21 @@ void APP_EndTransmission(bool playRoger)
 					APP_EndTransmission(true);
 					FUNCTION_Select(FUNCTION_FOREGROUND);
 				}
-	
+
 				gUpdateStatus        = true;
 				gUpdateDisplay       = true;
 				gFlagEndTransmission = false;
 			}
 			return;
 		}
-	
+
 		if (g_VOX_Lost)
 		{
 			gVOX_NoiseDetected = true;
-	
+
 			if (gCurrentFunction == FUNCTION_POWER_SAVE)
 				FUNCTION_Select(FUNCTION_FOREGROUND);
-	
+
 			if (gCurrentFunction != FUNCTION_TRANSMIT && gSerialConfigCountDown_500ms == 0)
 			{
 #ifdef ENABLE_DTMF_CALLING
@@ -865,21 +800,6 @@ void APP_Update(void)
 		CHFRSCANNER_ContinueScanning();
 	}
 
-#ifdef ENABLE_NOAA
-#ifdef ENABLE_VOICE
-		if (gEeprom.DUAL_WATCH == DUAL_WATCH_OFF && gIsNoaaMode && gScheduleNOAA && gVoiceWriteIndex == 0)
-#else
-		if (gEeprom.DUAL_WATCH == DUAL_WATCH_OFF && gIsNoaaMode && gScheduleNOAA)
-#endif
-		{
-			NOAA_IncreaseChannel();
-			RADIO_SetupRegisters(false);
-
-			gNOAA_Countdown_10ms = 7;      // 70ms
-			gScheduleNOAA        = false;
-		}
-#endif
-
 	// toggle between the VFO's if dual watch is enabled
 	if (!SCANNER_IsScanning() && gEeprom.DUAL_WATCH != DUAL_WATCH_OFF)
 	{
@@ -931,30 +851,21 @@ void APP_Update(void)
 			gEeprom.BATTERY_SAVE == 0         ||
 		    gScanStateDir != SCAN_OFF         ||
 		    gCssBackgroundScan                      ||
-		    gScreenToDisplay != DISPLAY_MAIN  
-#ifdef ENABLE_DTMF_CALLING			
+		    gScreenToDisplay != DISPLAY_MAIN
+#ifdef ENABLE_DTMF_CALLING
 			|| gDTMF_CallState != DTMF_CALL_STATE_NONE
 #endif
 			)
 		{
 			gBatterySaveCountdown_10ms   = battery_save_count_10ms;
 		}
-		else 
-#ifdef ENABLE_NOAA
-		if ((!IS_NOAA_CHANNEL(gEeprom.ScreenChannel[0]) && !IS_NOAA_CHANNEL(gEeprom.ScreenChannel[1])) || !gIsNoaaMode)
-#endif
+		else
 		{
 			//if (gCurrentFunction != FUNCTION_POWER_SAVE)
 				FUNCTION_Select(FUNCTION_POWER_SAVE);
 		}
-#ifdef ENABLE_NOAA
-		else
-		{
-			gBatterySaveCountdown_10ms = battery_save_count_10ms;
-		}
-#else
+
 		gSchedulePowerSave = false;
-#endif
 	}
 
 #ifdef ENABLE_VOICE
@@ -1022,13 +933,13 @@ void APP_Update(void)
 static void CheckKeys(void)
 {
 
-	if (0 
+	if (0
 #ifdef ENABLE_DTMF_CALLING
-	|| gSetting_KILLED 
-#endif	
-#ifdef ENABLE_AIRCOPY	
+	|| gSetting_KILLED
+#endif
+#ifdef ENABLE_AIRCOPY
 	|| (gScreenToDisplay == DISPLAY_AIRCOPY && gAircopyState != AIRCOPY_READY)
-#endif	
+#endif
 	)
 		return;
 
@@ -1071,7 +982,7 @@ static void CheckKeys(void)
 		boot_counter_10ms = 0;   // cancel boot screen/beeps if any key pressed
 
 	if (gKeyReading0 != Key) // new key pressed
-	{	
+	{
 
 		if (gKeyReading0 != KEY_INVALID && Key != KEY_INVALID)
 			ProcessKey(gKeyReading1, false, gKeyBeingHeld);  // key pressed without releasing previous key
@@ -1084,7 +995,7 @@ static void CheckKeys(void)
 	gDebounceCounter++;
 
 	if (gDebounceCounter == key_debounce_10ms) // debounced new key pressed
-	{	
+	{
 		if (Key == KEY_INVALID) //all non PTT keys released
 		{
 			if (gKeyReading1 != KEY_INVALID) // some button was pressed before
@@ -1107,7 +1018,7 @@ static void CheckKeys(void)
 		return;
 
 	if (gDebounceCounter == key_repeat_delay_10ms) //initial key repeat with longer delay
-	{	
+	{
 		if (Key != KEY_PTT)
 		{
 			gKeyBeingHeld = true;
@@ -1115,7 +1026,7 @@ static void CheckKeys(void)
 		}
 	}
 	else //subsequent fast key repeats
-	{	
+	{
 		if (Key == KEY_UP || Key == KEY_DOWN) // fast key repeats for up/down buttons
 		{
 			gKeyBeingHeld = true;
@@ -1251,9 +1162,9 @@ void APP_TimeSlice10ms(void)
 	}
 #endif
 
-	
+
 	SCANNER_TimeSlice10ms();
-	
+
 #ifdef ENABLE_AIRCOPY
 	if (gScreenToDisplay == DISPLAY_AIRCOPY && gAircopyState == AIRCOPY_TRANSFER && gAirCopyIsSendMode == 1)
 	{
@@ -1315,7 +1226,7 @@ void APP_TimeSlice500ms(void)
 			} else if (hasNewMessage == 2) {
 				hasNewMessage = 1;
 			}
-		}	
+		}
 	#endif
 
 	#ifdef ENABLE_ENCRYPTION
@@ -1384,12 +1295,12 @@ void APP_TimeSlice500ms(void)
 		}
 	#endif
 
-	if (gBacklightCountdown > 0 && 
-		!gAskToSave && 
+	if (gBacklightCountdown > 0 &&
+		!gAskToSave &&
 		!gCssBackgroundScan &&
 		// don't turn off backlight if user is in backlight menu option
-		!(gScreenToDisplay == DISPLAY_MENU && (UI_MENU_GetCurrentMenuId() == MENU_ABR || UI_MENU_GetCurrentMenuId() == MENU_ABR_MAX)) 
-		) 
+		!(gScreenToDisplay == DISPLAY_MENU && (UI_MENU_GetCurrentMenuId() == MENU_ABR || UI_MENU_GetCurrentMenuId() == MENU_ABR_MAX))
+		)
 	{	if (--gBacklightCountdown == 0)
 				if (gEeprom.BACKLIGHT_TIME < (ARRAY_SIZE(gSubMenu_BACKLIGHT) - 1)) // backlight is not set to be always on
 					BACKLIGHT_TurnOff();   // turn backlight off
@@ -1430,7 +1341,7 @@ void APP_TimeSlice500ms(void)
 			BATTERY_GetReadings(true);
 		}
 	}
-	
+
 	// regular display updates (once every 2 sec) - if need be
 	if ((gBatteryCheckCounter & 3) == 0)
 	{
@@ -1535,7 +1446,7 @@ void APP_TimeSlice500ms(void)
 				FM_Start();
 				GUI_SelectNextDisplay(DISPLAY_FM);
 			}
-#endif				
+#endif
 		}
 	}
 
@@ -1657,10 +1568,10 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 		const uint8_t s = gSetting_backlight_on_tx_rx;
 		const int m = UI_MENU_GetCurrentMenuId();
 		if 	(	//not when PTT and the backlight shouldn't turn on on TX
-				!(Key == KEY_PTT && s != BACKLIGHT_ON_TR_TX && s != BACKLIGHT_ON_TR_TXRX) 
+				!(Key == KEY_PTT && s != BACKLIGHT_ON_TR_TX && s != BACKLIGHT_ON_TR_TXRX)
 				// not in the backlight menu
 				&& !(gScreenToDisplay == DISPLAY_MENU && ( m == MENU_ABR || m == MENU_ABR_MAX || m == MENU_ABR_MIN))
-			) 
+			)
 		{
 			BACKLIGHT_TurnOn();
 		}
@@ -1678,7 +1589,7 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 
 			// cancel user input
 			cancelUserInputModes();
-			
+
 			if (gMonitor)
 				ACTION_Monitor(); //turn off the monitor
 #ifdef ENABLE_SCAN_RANGES
@@ -1716,7 +1627,7 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 			gUpdateDisplay = true;
 			AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
 			return;
-		}		
+		}
 
 		if (Key == KEY_F)
 		{	// function/key-lock key
@@ -1889,7 +1800,7 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				case DISPLAY_MENU:
 					MENU_ProcessKeys(Key, bKeyPressed, bKeyHeld);
 					break;
-				
+
 				#ifdef ENABLE_MESSENGER
 					case DISPLAY_MSG:
 						MSG_ProcessKeys(Key, bKeyPressed, bKeyHeld);
@@ -1992,10 +1903,6 @@ Skip:
 	if (gFlagReconfigureVfos)
 	{
 		RADIO_SelectVfos();
-
-#ifdef ENABLE_NOAA
-		RADIO_ConfigureNOAA();
-#endif
 
 		RADIO_SetupRegisters(true);
 

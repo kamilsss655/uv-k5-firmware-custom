@@ -48,23 +48,6 @@ const freq_band_table_t frequencyBandTable[7] =
 	#endif
 };
 
-#ifdef ENABLE_NOAA
-	const uint32_t NoaaFrequencyTable[10] =
-	{
-		16255000,
-		16240000,
-		16247500,
-		16242500,
-		16245000,
-		16250000,
-		16252500,
-		16152500,
-		16177500,
-		16327500
-	};
-#endif
-
-
 const uint16_t gStepFrequencyTable[] = {
 	250, 500, 625, 1000, 1250, 2500, 833,
 	1, 5, 10, 25, 50, 100, 125, 1500, 3000, 5000, 10000, 12500, 25000, 50000
@@ -73,7 +56,7 @@ const uint16_t gStepFrequencyTable[] = {
 const uint8_t StepMatchedIndexes[] = {
 	STEP_2_5kHz, STEP_5kHz, STEP_6_25kHz, STEP_10kHz, STEP_12_5kHz, STEP_25kHz, STEP_8_33kHz,
 	STEP_0_01kHz, STEP_0_05kHz, STEP_0_1kHz, STEP_0_25kHz, STEP_0_5kHz, STEP_1kHz, STEP_1_25kHz,
-	STEP_15kHz, STEP_30kHz, STEP_50kHz, STEP_100kHz, STEP_125kHz, STEP_250kHz, STEP_500kHz	
+	STEP_15kHz, STEP_30kHz, STEP_50kHz, STEP_100kHz, STEP_125kHz, STEP_250kHz, STEP_500kHz
 };
 
 const uint8_t StepSortedIndexes[] = {
@@ -82,18 +65,18 @@ const uint8_t StepSortedIndexes[] = {
 	STEP_25kHz, STEP_30kHz, STEP_50kHz, STEP_100kHz, STEP_125kHz, STEP_250kHz, STEP_500kHz
 };
 
-uint8_t FREQUENCY_GetStepIdxFromSortedIdx(uint8_t sortedIdx) 
+uint8_t FREQUENCY_GetStepIdxFromSortedIdx(uint8_t sortedIdx)
 {
 	return StepSortedIndexes[sortedIdx];
 }
-uint8_t FREQUENCY_GetSortedIdxFromStepIdx(uint8_t stepIdx) 
+uint8_t FREQUENCY_GetSortedIdxFromStepIdx(uint8_t stepIdx)
 {
 	for(uint8_t i = 0; i < ARRAY_SIZE(gStepFrequencyTable); i++)
 		if(StepSortedIndexes[i] == stepIdx)
 			return i;
 	return 0;
 }
-uint8_t FREQUENCY_GetStepIdxFromStepFrequency(uint16_t stepFrequency) 
+uint8_t FREQUENCY_GetStepIdxFromStepFrequency(uint16_t stepFrequency)
 {
 	for(uint8_t i = 0; i < ARRAY_SIZE(gStepFrequencyTable); i++)
 		if(gStepFrequencyTable[i] == stepFrequency)
@@ -137,7 +120,7 @@ uint32_t FREQUENCY_RoundToStep(uint32_t freq, uint16_t step)
 {
 	if(step == 833) {
         uint32_t base = freq/2500*2500;
-        int chno = (freq - base) / 700;    // convert entered aviation 8.33Khz channel number scheme to actual frequency. 
+        int chno = (freq - base) / 700;    // convert entered aviation 8.33Khz channel number scheme to actual frequency.
         return base + (chno * 833) + (chno == 3);
 	}
 	if(step == 1)

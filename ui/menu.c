@@ -64,11 +64,8 @@ const t_menu_item MenuList[] =
 	{"ScAdd2", VOICE_ID_INVALID,                       MENU_S_ADD2        },
 	{"ChSave", VOICE_ID_MEMORY_CHANNEL,                MENU_MEM_CH        }, // was "MEM-CH"
 	{"ChDele", VOICE_ID_DELETE_CHANNEL,                MENU_DEL_CH        }, // was "DEL-CH"
-	{"ChName", VOICE_ID_INVALID,                       MENU_MEM_NAME      },	
+	{"ChName", VOICE_ID_INVALID,                       MENU_MEM_NAME      },
 	{"ScnRev", VOICE_ID_INVALID,                       MENU_SC_REV        },
-#ifdef ENABLE_NOAA
-	{"NOAA-S", VOICE_ID_INVALID,                       MENU_NOAA_S        },
-#endif
 	{"F1Shrt",    VOICE_ID_INVALID,                    MENU_F1SHRT        },
 	{"F1Long",    VOICE_ID_INVALID,                    MENU_F1LONG        },
 	{"F2Shrt",    VOICE_ID_INVALID,                    MENU_F2SHRT        },
@@ -77,10 +74,10 @@ const t_menu_item MenuList[] =
 	{"KeyLck", VOICE_ID_INVALID,                       MENU_AUTOLK        }, // was "AUTOLk"
 	{"TxTOut", VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
 	{"BatSav", VOICE_ID_SAVE_MODE,                     MENU_SAVE          }, // was "SAVE"
-	{"Mic",    VOICE_ID_INVALID,                       MENU_MIC           },	
+	{"Mic",    VOICE_ID_INVALID,                       MENU_MIC           },
 	{"ChDisp", VOICE_ID_INVALID,                       MENU_MDF           }, // was "MDF"
 	{"POnMsg", VOICE_ID_INVALID,                       MENU_PONMSG        },
-	{"BatTxt", VOICE_ID_INVALID,                       MENU_BAT_TXT       },	
+	{"BatTxt", VOICE_ID_INVALID,                       MENU_BAT_TXT       },
 	{"BackLt", VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
 	{"BLMin",  VOICE_ID_INVALID,                       MENU_ABR_MIN       },
 	{"BLMax",  VOICE_ID_INVALID,                       MENU_ABR_MAX       },
@@ -366,13 +363,13 @@ const t_sidefunction SIDEFUNCTIONS[] =
 #ifdef ENABLE_VOX
 	{"VOX",				ACTION_OPT_VOX},
 #endif
-#ifdef ENABLE_ALARM	
+#ifdef ENABLE_ALARM
 	{"ALARM",			ACTION_OPT_ALARM},
 #endif
 #ifdef ENABLE_FMRADIO
 	{"FM RADIO",		ACTION_OPT_FM},
-#endif	
-#ifdef ENABLE_TX1750	
+#endif
+#ifdef ENABLE_TX1750
 	{"1750HZ",			ACTION_OPT_1750},
 #endif
 	{"LOCK\nKEYPAD",	ACTION_OPT_KEYLOCK},
@@ -645,12 +642,12 @@ void UI_DisplayMenu(void)
 				sprintf(String, "%d", gSubMenuSelection);
 				if(gIsInSubMenu)
 					BACKLIGHT_SetBrightness(gSubMenuSelection);
-				break;	
+				break;
 
 			case MENU_AM:
 				strcpy(String, gModulationStr[gSubMenuSelection]);
 				break;
-			
+
 			case MENU_RX_AGC:
 				strcpy(String, gSubMenu_RX_AGC[gSubMenuSelection]);
 				break;
@@ -673,9 +670,6 @@ void UI_DisplayMenu(void)
 			case MENU_D_DCD:
 	#endif
 			case MENU_D_LIVE_DEC:
-			#ifdef ENABLE_NOAA
-				case MENU_NOAA_S:
-			#endif
 			#ifdef ENABLE_ENCRYPTION
 				case MENU_MSG_ENC:
 			#endif
@@ -761,17 +755,17 @@ void UI_DisplayMenu(void)
 							UI_PrintString(edit, (menu_item_x1 -2), 0, 2, 8);
 							// show the cursor
 							if(edit_index < 10)
-								UI_PrintString(     "^", (menu_item_x1 -2) + (8 * edit_index), 0, 4, 8);  
+								UI_PrintString(     "^", (menu_item_x1 -2) + (8 * edit_index), 0, 4, 8);
 						}
 						else{
 							strcpy(String, "hashed value");
 							UI_PrintStringSmall(String, 20, 0, 5);
 
 							memset(String, 0, sizeof(String));
-							
+
 							CRYPTO_DisplayHash(gEeprom.ENC_KEY, String, sizeof(gEeprom.ENC_KEY));
 							UI_PrintString(String, (menu_item_x1 -2), 0, 2, 8);
-						}			
+						}
 					}
 
 					already_printed = true;
@@ -907,7 +901,7 @@ void UI_DisplayMenu(void)
 
 			case MENU_BATTYP:
 				strcpy(String, gSubMenu_BATTYP[gSubMenuSelection]);
-				break;	
+				break;
 
 			case MENU_F1SHRT:
 			case MENU_F1LONG:
@@ -976,7 +970,7 @@ void UI_DisplayMenu(void)
 
 	if ((UI_MENU_GetCurrentMenuId() == MENU_R_CTCS || UI_MENU_GetCurrentMenuId() == MENU_R_DCS) && gCssBackgroundScan)
 		UI_PrintString("SCAN", menu_item_x1, menu_item_x2, 4, 8);
-		
+
 
 	if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE)
 		if (strlen(gEeprom.DTMF_UP_CODE) > 8)
@@ -1003,7 +997,7 @@ void UI_DisplayMenu(void)
 		UI_MENU_GetCurrentMenuId() == MENU_SQL_TONE
 #ifdef ENABLE_DTMF_CALLING
 	    || UI_MENU_GetCurrentMenuId() == MENU_D_LIST
-#endif		
+#endif
 		)
 
 	{
@@ -1039,7 +1033,7 @@ bool UI_MENU_IsAllowedToEdit(int menu_id)
 {
 	bool isChannelOnlySetting;
 	bool isVfoOnlySetting;
-	
+
 	isChannelOnlySetting =
 		IsValueInArray(menu_id, CHANNEL_ONLY_SETTINGS, sizeof(CHANNEL_ONLY_SETTINGS));
 	isVfoOnlySetting =
@@ -1049,7 +1043,7 @@ bool UI_MENU_IsAllowedToEdit(int menu_id)
 	{
 		return false;
 	}
-	// if we are in channel mode and 
+	// if we are in channel mode and
 	else if (isVfoOnlySetting && IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE))
 	{
 		return false;
@@ -1059,5 +1053,5 @@ bool UI_MENU_IsAllowedToEdit(int menu_id)
 	{
 		return true;
 	}
-	
+
 }

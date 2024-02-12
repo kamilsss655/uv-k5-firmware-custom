@@ -167,7 +167,7 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 			gAnotherVoiceID   = VOICE_ID_MEMORY_CHANNEL;
 #endif
 			gRequestDisplayScreen = DISPLAY_SCANNER;
-			
+
 			gUpdateStatus = true;
 			break;
 
@@ -213,7 +213,7 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 
 			gTxVfo->CHANNEL_SAVE = chan;
 			gEeprom.ScreenChannel[gEeprom.TX_VFO] = chan;
-#ifdef ENABLE_VOICE	
+#ifdef ENABLE_VOICE
 			gAnotherVoiceID = VOICE_ID_CONFIRM;
 #endif
 			gRequestDisplayScreen = DISPLAY_SCANNER;
@@ -311,11 +311,6 @@ void SCANNER_Start(bool singleFreq)
 	BK4819_StopScan();
 	RADIO_SelectVfos();
 
-#ifdef ENABLE_NOAA
-	if (IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
-		gRxVfo->CHANNEL_SAVE = FREQ_CHANNEL_FIRST + BAND6_400MHz;
-#endif
-
 	uint8_t  backupStep      = gRxVfo->STEP_SETTING;
 	uint16_t backupFrequency = gRxVfo->StepFrequency;
 
@@ -325,10 +320,6 @@ void SCANNER_Start(bool singleFreq)
 	gRxVfo->StepFrequency = backupFrequency;
 
 	RADIO_SetupRegisters(true);
-
-#ifdef ENABLE_NOAA
-	gIsNoaaMode = false;
-#endif
 
 	if (gScanSingleFrequency) {
 		gScanCssState  = SCAN_CSS_STATE_SCANNING;
@@ -473,7 +464,7 @@ void SCANNER_TimeSlice10ms(void)
 			else if (scanResult == BK4819_CSS_RESULT_CTCSS) {
 				const uint8_t Code = DCS_GetCtcssCode(ctcssFreq);
 				if (Code != 0xFF) {
-					
+
 					++scanHitCount;
 					gScanCssState      = SCAN_CSS_STATE_FOUND;
 					gScanUseCssResult  = true;

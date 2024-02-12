@@ -45,9 +45,9 @@ void UI_DisplayStatus()
 	uint8_t     *line = gStatusLine;
 	unsigned int x    = 0;
 	unsigned int x1   = 0;
-	
+
 	gUpdateStatus = false;
-	
+
 	memset(gStatusLine, 0, sizeof(gStatusLine));
 
 	// **************
@@ -74,16 +74,6 @@ void UI_DisplayStatus()
 	}
 	x += sizeof(BITMAP_POWERSAVE);
 
-	#ifdef ENABLE_NOAA
-		// NOASS SCAN indicator
-		if (gIsNoaaMode)
-		{
-			memmove(line + x, BITMAP_NOAA, sizeof(BITMAP_NOAA));
-			x1 = x + sizeof(BITMAP_NOAA);
-		}
-		x += sizeof(BITMAP_NOAA);
-	#endif
-
 	#ifdef ENABLE_MESSENGER
 		if (hasNewMessage > 0) { // New Message indicator
 			if (hasNewMessage == 1)
@@ -99,7 +89,7 @@ void UI_DisplayStatus()
 		memset(line + x, 0xFF, 10);
 		x1 = x + 10;
 	}
-	else 
+	else
 #endif
 	{
 		// SCAN indicator
@@ -140,9 +130,9 @@ void UI_DisplayStatus()
 	if(!SCANNER_IsScanning()) {
 		uint8_t dw = (gEeprom.DUAL_WATCH != DUAL_WATCH_OFF) + (gEeprom.CROSS_BAND_RX_TX != CROSS_BAND_OFF) * 2;
 		if(dw == 1 || dw == 3) { // DWR - dual watch + respond
-			if(gDualWatchActive) 
+			if(gDualWatchActive)
 				memmove(line + x, BITMAP_TDR1, sizeof(BITMAP_TDR1) - (dw==1?0:5));
-			else 
+			else
 				memmove(line + x + 3, BITMAP_TDR2, sizeof(BITMAP_TDR2));
 		}
 		else if(dw == 2) { // XB - crossband
@@ -150,7 +140,7 @@ void UI_DisplayStatus()
 		}
 	}
 	x += sizeof(BITMAP_TDR1) + 2;
-	
+
 	#ifdef ENABLE_VOX
 		// VOX indicator
 		if (gEeprom.VOX_SWITCH)
@@ -182,7 +172,7 @@ void UI_DisplayStatus()
 	{	// battery voltage or percentage
 		char         s[8];
 		unsigned int space_needed;
-		
+
 		unsigned int x2 = LCD_WIDTH - sizeof(BITMAP_BatteryLevel1) - 3;
 
 		switch (gSetting_battery_text)
@@ -190,7 +180,7 @@ void UI_DisplayStatus()
 			default:
 			case 0:
 				break;
-	
+
 			case 1:		// voltage
 			{
 				const uint16_t voltage = (gBatteryVoltageAverage <= 999) ? gBatteryVoltageAverage : 999; // limit to 9.99V
@@ -202,7 +192,7 @@ void UI_DisplayStatus()
 				}
 				break;
 			}
-			
+
 			case 2:		// percentage
 			{
 				sprintf(s, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
@@ -213,13 +203,13 @@ void UI_DisplayStatus()
 			}
 		}
 	}
-		
+
 	// move to right side of the screen
 	x = LCD_WIDTH - sizeof(BITMAP_BatteryLevel1);
 
 	// BATTERY LEVEL indicator
 	UI_DrawBattery(line + x, gBatteryDisplayLevel, gLowBatteryBlink);
-	
+
 	// **************
 
 	ST7565_BlitStatusLine();
