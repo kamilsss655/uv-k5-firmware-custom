@@ -105,7 +105,7 @@ void MENU_CssScanFound(void)
 void MENU_StopCssScan(void)
 {
 	gCssBackgroundScan = false;
-	
+
 #ifdef ENABLE_VOICE
 	gAnotherVoiceID       = VOICE_ID_SCANNING_STOP;
 #endif
@@ -135,12 +135,12 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 		case MENU_ABR_MIN:
 			*pMin = 0;
 			*pMax = 9;
-			break;				
+			break;
 
 		case MENU_ABR_MAX:
 			*pMin = 1;
 			*pMax = 10;
-			break;	
+			break;
 
 		case MENU_F_LOCK:
 			*pMin = 0;
@@ -240,9 +240,6 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 		case MENU_D_DCD:
 #endif
 		case MENU_D_LIVE_DEC:
-		#ifdef ENABLE_NOAA
-			case MENU_NOAA_S:
-		#endif
 		case MENU_350TX:
 		case MENU_200TX:
 		case MENU_500TX:
@@ -308,7 +305,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMax = 4;
 			break;
 
-			
+
 #ifdef ENABLE_DTMF_CALLING
 		case MENU_D_RSP:
 			*pMin = 0;
@@ -358,7 +355,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMin = 0;
 			*pMax = 1;
 			break;
-		
+
 		case MENU_F1SHRT:
 		case MENU_F1LONG:
 		case MENU_F2SHRT:
@@ -483,7 +480,7 @@ void MENU_AcceptSetting(void)
 			gTxVfo->TX_OFFSET_FREQUENCY = gSubMenuSelection;
 			gRequestSaveChannel         = 1;
 			return;
-			
+
 		case MENU_RX_OFFSET:
 			gEeprom.RX_OFFSET = MIN(gSubMenuSelection, RX_OFFSET_MAX);
 			gFlagReconfigureVfos = true;
@@ -566,7 +563,7 @@ void MENU_AcceptSetting(void)
 					edit[i] = ' ';
 				}
 			}
-			
+
 			SETTINGS_SaveChannelName(gSubMenuSelection, edit);
 			return;
 
@@ -604,7 +601,7 @@ void MENU_AcceptSetting(void)
 		case MENU_ABR_MAX:
 			gEeprom.BACKLIGHT_MAX = gSubMenuSelection;
 			gEeprom.BACKLIGHT_MIN = MIN(gSubMenuSelection - 1, gEeprom.BACKLIGHT_MIN);
-			break;			
+			break;
 
 		case MENU_ABR_ON_TX_RX:
 			gSetting_backlight_on_tx_rx = gSubMenuSelection;
@@ -766,13 +763,6 @@ void MENU_AcceptSetting(void)
 			gFlagResetVfos    = true;
 			break;
 
-		#ifdef ENABLE_NOAA
-			case MENU_NOAA_S:
-				gEeprom.NOAA_AUTO_SCAN = gSubMenuSelection;
-				gFlagReconfigureVfos   = true;
-				break;
-		#endif
-
 		case MENU_DEL_CH:
 			SETTINGS_UpdateChannel(gSubMenuSelection, NULL, false);
 			gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
@@ -886,9 +876,9 @@ void MENU_ShowCurrentSetting(void)
 
 		case MENU_RESET:
 			gSubMenuSelection = 0;
-			break;			
+			break;
 
-		case MENU_R_DCS: 
+		case MENU_R_DCS:
 		case MENU_R_CTCS:
 		{
 			DCS_CodeType_t type = gTxVfo->freq_config_RX.CodeType;
@@ -946,7 +936,7 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_OFFSET:
 			gSubMenuSelection = gTxVfo->TX_OFFSET_FREQUENCY;
 			break;
-			
+
 		case MENU_RX_OFFSET:
     		gSubMenuSelection = gEeprom.RX_OFFSET;
 			break;
@@ -1021,7 +1011,7 @@ void MENU_ShowCurrentSetting(void)
 
 		case MENU_ABR_MAX:
 			gSubMenuSelection = gEeprom.BACKLIGHT_MAX;
-			break;		
+			break;
 
 		case MENU_ABR_ON_TX_RX:
 			gSubMenuSelection = gSetting_backlight_on_tx_rx;
@@ -1136,16 +1126,10 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_RX_AGC:
 			gSubMenuSelection = gEeprom.RX_AGC;
 			break;
-		
+
 		case MENU_SQL_TONE:
 			gSubMenuSelection = gEeprom.SQL_TONE;
 			break;
-
-		#ifdef ENABLE_NOAA
-			case MENU_NOAA_S:
-				gSubMenuSelection = gEeprom.NOAA_AUTO_SCAN;
-				break;
-		#endif
 
 		case MENU_DEL_CH:
 			#if 0
@@ -1191,7 +1175,7 @@ void MENU_ShowCurrentSetting(void)
 
 		case MENU_BATTYP:
 			gSubMenuSelection = gEeprom.BATTERY_TYPE;
-			break;			
+			break;
 
 		case MENU_F1SHRT:
 		case MENU_F1LONG:
@@ -1212,7 +1196,7 @@ void MENU_ShowCurrentSetting(void)
 					gSubMenuSelection = i;
 					break;
 				}
-					
+
 			}
 			break;
 		}
@@ -1240,7 +1224,7 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 			|| UI_MENU_GetCurrentMenuId() == MENU_ENC_KEY
 		#endif
 	))
-		
+
 	{	// currently editing the channel name
 
 		if (edit_index < 10)
@@ -1321,7 +1305,7 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 		#ifdef ENABLE_VOICE
 			gAnotherVoiceID = (VOICE_ID_t)Key;
 		#endif
-		
+
 		Frequency = StrToUL(INPUTBOX_GetAscii())*100;
 		if(UI_MENU_GetCurrentMenuId() == MENU_OFFSET)
 		{
@@ -1349,13 +1333,13 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 			return;
 		}
 	#endif
-	
-	if (UI_MENU_GetCurrentMenuId() == MENU_MEM_CH || 
-		UI_MENU_GetCurrentMenuId() == MENU_DEL_CH || 
-		UI_MENU_GetCurrentMenuId() == MENU_1_CALL || 
+
+	if (UI_MENU_GetCurrentMenuId() == MENU_MEM_CH ||
+		UI_MENU_GetCurrentMenuId() == MENU_DEL_CH ||
+		UI_MENU_GetCurrentMenuId() == MENU_1_CALL ||
 		UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME)
 	{	// enter 3-digit channel number
-	
+
 		if (gInputBoxIndex < 3)
 		{
 			#ifdef ENABLE_VOICE
@@ -1473,7 +1457,7 @@ static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 }
 
 static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
-{	
+{
 	//Exit if not allowed to edit
 	if(UI_MENU_IsAllowedToEdit(UI_MENU_GetCurrentMenuId())==false)
 	{
@@ -1543,9 +1527,9 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 		{	// enter channel name edit mode
 			if (!RADIO_CheckValidChannel(gSubMenuSelection, false, 0))
 				return;
-		
+
 			SETTINGS_FetchChannelName(edit, gSubMenuSelection);
-			
+
 			// pad the channel name out with '_'
 			edit_index = strlen(edit);
 			while (edit_index < 10)
@@ -1671,11 +1655,7 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
 
 	RADIO_SelectVfos();
 
-	#ifdef ENABLE_NOAA
-		if (!IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE) && gRxVfo->Modulation == MODULATION_FM)
-	#else
-		if (gRxVfo->Modulation ==  MODULATION_FM)
-	#endif
+	if (gRxVfo->Modulation ==  MODULATION_FM)
 	{
 		if ((UI_MENU_GetCurrentMenuId() == MENU_R_CTCS || UI_MENU_GetCurrentMenuId() == MENU_R_DCS) && gIsInSubMenu)
 		{	// scan CTCSS or DCS to find the tone/code of the incoming signal

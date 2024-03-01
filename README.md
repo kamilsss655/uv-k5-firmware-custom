@@ -18,7 +18,7 @@ This repository is a fork of [Egzumer firmare](https://github.com/egzumer/uv-k5-
 * `VOXSen` fixed and improved VOX sensitivity setting from menu. Added `VoxDel` - VOX delay setting allowing to set value to `0` for no VOX delay which might be useful for packet radio enthusiasts (APRS etc.).
 * `SqTone` configurable squelch tail tones and 180* phase shift tail when in CTCSS mode
 
-> [!WARNING]  
+> [!WARNING]
 > Use this firmware at your own risk (entirely). There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may even brick your radio(s), in which case, you'd need to buy another radio.
 Anyway, have fun.
 
@@ -156,7 +156,6 @@ ENABLE_LTO                         := 1     **experimental, reduces size of comp
 ENABLE_UART                        := 1       without this you can't configure radio via PC !
 ENABLE_AIRCOPY                     := 0       easier to just enter frequency with butts
 ENABLE_FMRADIO                     := 1       WBFM VHF broadcast band receiver
-ENABLE_NOAA                        := 0       everything NOAA (only of any use in the USA)
 ENABLE_VOICE                       := 0       want to hear voices ?
 ENABLE_VOX                         := 1
 ENABLE_ALARM                       := 0       TX alarms
@@ -254,7 +253,7 @@ Thank you for your interest in contributing to this project! Here are some of th
 * Spread the word about this project
 * Write and edit the documentation
 * Donate to the project using the "Sponsor" button
-   
+
 ## License
 
 Original work Copyright 2023 Dual Tachyon

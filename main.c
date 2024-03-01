@@ -110,7 +110,7 @@ void Main(void)
 	#endif
 
 	BootMode = BOOT_GetMode();
-	
+
 	if (BootMode == BOOT_MODE_F_LOCK)
 	{
 		gF_LOCK = true;            // flag to say include the hidden menu items
@@ -204,10 +204,6 @@ void Main(void)
 
 			AUDIO_PlaySingleVoice(0);
 		}
-#endif
-
-#ifdef ENABLE_NOAA
-		RADIO_ConfigureNOAA();
 #endif
 
 		// ******************

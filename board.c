@@ -523,9 +523,6 @@ void BOARD_EEPROM_Init(void)
 	gEeprom.CHAN_1_CALL          = IS_MR_CHANNEL(Data[0]) ? Data[0] : MR_CHANNEL_FIRST;
 	gEeprom.SQUELCH_LEVEL        = (Data[1] < 10) ? Data[1] : 1;
 	gEeprom.TX_TIMEOUT_TIMER     = (Data[2] < 11) ? Data[2] : 1;
-	#ifdef ENABLE_NOAA
-		gEeprom.NOAA_AUTO_SCAN   = (Data[3] <  2) ? Data[3] : false;
-	#endif
 	gEeprom.KEY_LOCK             = (Data[4] <  2) ? Data[4] : false;
 	#ifdef ENABLE_VOX
 		gEeprom.VOX_SWITCH       = (Data[5] <  2) ? Data[5] : false;
@@ -555,10 +552,6 @@ void BOARD_EEPROM_Init(void)
 	gEeprom.MrChannel[1]       = IS_MR_CHANNEL(Data[4])    ? Data[4] : MR_CHANNEL_FIRST;
 	gEeprom.FreqChannel[0]     = IS_FREQ_CHANNEL(Data[2])  ? Data[2] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
 	gEeprom.FreqChannel[1]     = IS_FREQ_CHANNEL(Data[5])  ? Data[5] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
-	#ifdef ENABLE_NOAA
-		gEeprom.NoaaChannel[0] = IS_NOAA_CHANNEL(Data[6])  ? Data[6] : NOAA_CHANNEL_FIRST;
-		gEeprom.NoaaChannel[1] = IS_NOAA_CHANNEL(Data[7])  ? Data[7] : NOAA_CHANNEL_FIRST;
-	#endif
 
 #ifdef ENABLE_FMRADIO
 	EEPROM_ReadBuffer(0x0E88, Data, 8);

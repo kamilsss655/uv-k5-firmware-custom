@@ -79,29 +79,18 @@ void ACTION_Monitor(void)
 {
 	if (gCurrentFunction != FUNCTION_MONITOR) { // enable the monitor
 		RADIO_SelectVfos();
-#ifdef ENABLE_NOAA
-		if (gRxVfo->CHANNEL_SAVE >= NOAA_CHANNEL_FIRST && gIsNoaaMode)
-			gNoaaChannel = gRxVfo->CHANNEL_SAVE - NOAA_CHANNEL_FIRST;
-#endif
 		RADIO_SetupRegisters(true);
 		APP_StartListening(FUNCTION_MONITOR);
 		return;
 	}
 
 	gMonitor = false;
-	
+
 	if (gScanStateDir != SCAN_OFF) {
 		gScanPauseDelayIn_10ms = scan_pause_delay_in_1_10ms;
 		gScheduleScanListen    = false;
 		gScanPauseMode         = true;
 	}
-
-#ifdef ENABLE_NOAA
-	if (gEeprom.DUAL_WATCH == DUAL_WATCH_OFF && gIsNoaaMode) {
-		gNOAA_Countdown_10ms = NOAA_countdown_10ms;
-		gScheduleNOAA        = false;
-	}
-#endif
 
 	RADIO_SetupRegisters(true);
 
@@ -125,55 +114,50 @@ void ACTION_Scan(bool bRestart)
 
 		RADIO_SelectVfos();
 
-#ifdef ENABLE_NOAA
-		if (!IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
-#endif
-		{
-			GUI_SelectNextDisplay(DISPLAY_MAIN);
+		GUI_SelectNextDisplay(DISPLAY_MAIN);
 
-			if (gScanStateDir != SCAN_OFF)
-			{	// already scanning
-		
-				if (IS_MR_CHANNEL(gNextMrChannel))
-				{	// channel mode
+		if (gScanStateDir != SCAN_OFF)
+		{	// already scanning
 
-					// keep scanning but toggle between scan lists
-					gEeprom.SCAN_LIST_DEFAULT = (gEeprom.SCAN_LIST_DEFAULT + 1) % 3;
+			if (IS_MR_CHANNEL(gNextMrChannel))
+			{	// channel mode
 
-					// jump to the next channel
-					CHFRSCANNER_Start(false, gScanStateDir);
-					gScanPauseDelayIn_10ms = 1;
-					gScheduleScanListen    = false;
+				// keep scanning but toggle between scan lists
+				gEeprom.SCAN_LIST_DEFAULT = (gEeprom.SCAN_LIST_DEFAULT + 1) % 3;
 
-					gUpdateStatus = true;
-				}
-				else
-				{	// stop scanning
-			
-					CHFRSCANNER_Stop();
+				// jump to the next channel
+				CHFRSCANNER_Start(false, gScanStateDir);
+				gScanPauseDelayIn_10ms = 1;
+				gScheduleScanListen    = false;
 
-					#ifdef ENABLE_VOICE
-						gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
-					#endif
-				}
+				gUpdateStatus = true;
 			}
 			else
-			{	// start scanning
-	
-				CHFRSCANNER_Start(true, SCAN_FWD);
+			{	// stop scanning
+
+				CHFRSCANNER_Stop();
 
 				#ifdef ENABLE_VOICE
-					AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
-					AUDIO_PlaySingleVoice(true);
+					gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
 				#endif
-
-				// clear the other vfo's rssi level (to hide the antenna symbol)
-				gVFO_RSSI_bar_level[(gEeprom.RX_VFO + 1) & 1u] = 0;
-
-				// let the user see DW is not active
-				gDualWatchActive = false;
-				gUpdateStatus    = true;
 			}
+		}
+		else
+		{	// start scanning
+
+			CHFRSCANNER_Start(true, SCAN_FWD);
+
+			#ifdef ENABLE_VOICE
+				AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
+				AUDIO_PlaySingleVoice(true);
+			#endif
+
+			// clear the other vfo's rssi level (to hide the antenna symbol)
+			gVFO_RSSI_bar_level[(gEeprom.RX_VFO + 1) & 1u] = 0;
+
+			// let the user see DW is not active
+			gDualWatchActive = false;
+			gUpdateStatus    = true;
 		}
 	}
 }
@@ -251,7 +235,7 @@ void ACTION_Scan(bool bRestart)
 void ACTION_RunSpectrum(void)
 {
 	#ifdef ENABLE_SPECTRUM_CHANNEL_SCAN
-				
+
 		if(gScanRangeStart){
 			// if scanRangeStart then we enter in scan range mode
 			APP_RunSpectrum(SCAN_RANGE_MODE);
@@ -271,7 +255,7 @@ void ACTION_SwitchDemodul(void)
 	gTxVfo->Modulation++;
 	if(gTxVfo->Modulation == MODULATION_UKNOWN)
 		gTxVfo->Modulation = MODULATION_FM;
-	
+
 	gRequestSaveChannel = 1;
 }
 
@@ -282,7 +266,7 @@ BK4819_FilterBandwidth_t ACTION_NextBandwidth(BK4819_FilterBandwidth_t currentBa
   {
 	nextBandwidth = BK4819_FILTER_BW_WIDE;
   }
-  else 
+  else
   {
 	nextBandwidth = currentBandwidth + 1;
   }

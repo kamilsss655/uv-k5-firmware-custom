@@ -346,10 +346,6 @@ static void CMD_052F(const uint8_t *pBuffer)
 	gEeprom.VfoInfo[0].DTMF_DECODING_ENABLE          = false;
 #endif
 
-	#ifdef ENABLE_NOAA
-		gIsNoaaMode = false;
-	#endif
-
 	if (gCurrentFunction == FUNCTION_POWER_SAVE)
 		FUNCTION_Select(FUNCTION_FOREGROUND);
 

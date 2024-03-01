@@ -54,7 +54,7 @@ const char gModulationStr[][4] =
 	"FM",
 	"AM",
 	"USB",
-	
+
 #ifdef ENABLE_BYP_RAW_DEMODULATORS
 	"BYP",
 	"RAW"
@@ -99,7 +99,7 @@ bool RADIO_CheckValidChannel(uint16_t Channel, bool bCheckScanList, uint8_t VFO)
 uint8_t RADIO_FindNextChannel(uint8_t Channel, int8_t Direction, bool bCheckScanList, uint8_t VFO)
 {
 	unsigned int i;
-		
+
 	for (i = 0; IS_MR_CHANNEL(i); i++)
 	{
 		if (Channel == 0xFF)
@@ -113,7 +113,7 @@ uint8_t RADIO_FindNextChannel(uint8_t Channel, int8_t Direction, bool bCheckScan
 
 		Channel += Direction;
 	}
-	
+
 	return 0xFF;
 }
 
@@ -139,7 +139,7 @@ void RADIO_InitInfo(VFO_Info_t *pInfo, const uint8_t ChannelSave, const uint32_t
 		pInfo->Modulation = MODULATION_AM;
 	else
 		pInfo->Modulation = MODULATION_FM;
-		
+
 	RADIO_ConfigureSquelchAndOutputPower(pInfo);
 }
 
@@ -157,32 +157,15 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 
 	uint8_t channel = gEeprom.ScreenChannel[VFO];
 
-	if (IS_VALID_CHANNEL(channel)) {
-#ifdef ENABLE_NOAA
-		if (channel >= NOAA_CHANNEL_FIRST)
-		{
-			RADIO_InitInfo(pVfo, gEeprom.ScreenChannel[VFO], NoaaFrequencyTable[channel - NOAA_CHANNEL_FIRST]);
-
-			if (gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_OFF)
-				return;
-
-			gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
-
-			gUpdateStatus = true;
-			return;
+	if (IS_VALID_CHANNEL(channel) && IS_MR_CHANNEL(channel)) {
+		channel = RADIO_FindNextChannel(channel, RADIO_CHANNEL_UP, false, VFO);
+		if (channel == 0xFF) {
+			channel                    = gEeprom.FreqChannel[VFO];
+			gEeprom.ScreenChannel[VFO] = gEeprom.FreqChannel[VFO];
 		}
-#endif
-
-		if (IS_MR_CHANNEL(channel)) {
-			channel = RADIO_FindNextChannel(channel, RADIO_CHANNEL_UP, false, VFO);
-			if (channel == 0xFF) {
-				channel                    = gEeprom.FreqChannel[VFO];
-				gEeprom.ScreenChannel[VFO] = gEeprom.FreqChannel[VFO];
-			}
-			else {
-				gEeprom.ScreenChannel[VFO] = channel;
-				gEeprom.MrChannel[VFO]     = channel;
-			}
+		else {
+			gEeprom.ScreenChannel[VFO] = channel;
+			gEeprom.MrChannel[VFO]     = channel;
 		}
 	}
 	else
@@ -243,7 +226,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 		pVfo->TX_OFFSET_FREQUENCY_DIRECTION = tmp;
 		tmp = data[3] >> 4;
 		if (tmp >= MODULATION_UKNOWN)
-			tmp = MODULATION_FM;		
+			tmp = MODULATION_FM;
 		pVfo->Modulation = tmp;
 
 		tmp = data[6];
@@ -320,7 +303,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 			pVfo->BUSY_CHANNEL_LOCK = !!((d4 >> 4) & 1u);
 			if(pVfo->CHANNEL_BANDWIDTH != BK4819_FILTER_BW_WIDE)
 				pVfo->CHANNEL_BANDWIDTH = ((d4 >> 5) & 3u) + 1;
-		}	
+		}
 
 		if (data[5] == 0xFF)
 		{
@@ -423,7 +406,7 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
 
 	// *******************************
 	// squelch
-	
+
 	Band = FREQUENCY_GetBand(pInfo->pRX->Frequency);
 	uint16_t Base = (Band < BAND4_174MHz) ? 0x1E60 : 0x1E00;
 
@@ -500,7 +483,7 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
 
 	// *******************************
 	// output power
-	
+
 	Band = FREQUENCY_GetBand(pInfo->pTX->Frequency);
 
 	EEPROM_ReadBuffer(0x1ED0 + (Band * 16) + (pInfo->OUTPUT_POWER * 3), Txp, 3);
@@ -554,7 +537,7 @@ void RADIO_ApplyTxOffset(VFO_Info_t *pInfo)
 
 static void RADIO_SelectCurrentVfo(void)
 {
-	// if crossband is active and DW not the gCurrentVfo is gTxVfo (gTxVfo/TX_VFO is only ever changed by the user) 
+	// if crossband is active and DW not the gCurrentVfo is gTxVfo (gTxVfo/TX_VFO is only ever changed by the user)
 	// otherwise it is set to gRxVfo which is set to gTxVfo in RADIO_SelectVfos
 	// so in the end gCurrentVfo is equal to gTxVfo unless dual watch changes it on incomming transmition (again, this can only happen when XB off)
 	// note: it is called only in certain situations so could be not up-to-date
@@ -583,7 +566,7 @@ void RADIO_SetupRegisters(bool switchToForeground)
 	BK4819_FilterBandwidth_t Bandwidth = gRxVfo->CHANNEL_BANDWIDTH;
 
 	BK4819_SetFilterBandwidth(Bandwidth, gRxVfo->Modulation != MODULATION_AM);
-	
+
 	BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
 
 	BK4819_SetupPowerAmplifier(0, 0);
@@ -605,14 +588,7 @@ void RADIO_SetupRegisters(bool switchToForeground)
 	BK4819_WriteRegister(BK4819_REG_7D, 0xE940 | (gEeprom.MIC_SENSITIVITY_TUNING & 0x1f));
 
 	uint32_t Frequency;
-	#ifdef ENABLE_NOAA
-		if (!IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE) || !gIsNoaaMode)
-			Frequency = gRxVfo->pRX->Frequency;
-		else
-			Frequency = NoaaFrequencyTable[gNoaaChannel];
-	#else
-		Frequency = gRxVfo->pRX->Frequency + gEeprom.RX_OFFSET;
-	#endif
+	Frequency = gRxVfo->pRX->Frequency + gEeprom.RX_OFFSET;
 	BK4819_SetFrequency(Frequency);
 
 	BK4819_SetupSquelch(
@@ -636,81 +612,57 @@ void RADIO_SetupRegisters(bool switchToForeground)
 
 	uint16_t InterruptMask = BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
 
-	#ifdef ENABLE_NOAA
-		if (!IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
-	#endif
-	{
-		if (gRxVfo->Modulation == MODULATION_FM)
-		{	// FM
-			uint8_t CodeType = gRxVfo->pRX->CodeType;
-			uint8_t Code     = gRxVfo->pRX->Code;
-			switch (CodeType)
-			{
-				default:
-				case CODE_TYPE_OFF:
-					// this only works as a setup function for REG_51
-					BK4819_SetCTCSSFrequency(CTCSS_Options[gEeprom.SQL_TONE]);
-					// and REG_07 is overwritten by this function
-					BK4819_SetTailDetection(CTCSS_Options[gEeprom.SQL_TONE]);
-
-					InterruptMask = BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
-					break;
-
-				case CODE_TYPE_CONTINUOUS_TONE:
-					BK4819_SetCTCSSFrequency(CTCSS_Options[Code]);
-
-					InterruptMask = 0
-						| BK4819_REG_3F_CxCSS_TAIL
-						| BK4819_REG_3F_CTCSS_FOUND
-						| BK4819_REG_3F_CTCSS_LOST
-						| BK4819_REG_3F_SQUELCH_FOUND
-						| BK4819_REG_3F_SQUELCH_LOST;
-
-					break;
-
-				case CODE_TYPE_DIGITAL:
-				case CODE_TYPE_REVERSE_DIGITAL:
-					BK4819_SetCDCSSCodeWord(DCS_GetGolayCodeWord(CodeType, Code));
-					InterruptMask = 0
-						| BK4819_REG_3F_CxCSS_TAIL
-						| BK4819_REG_3F_CDCSS_FOUND
-						| BK4819_REG_3F_CDCSS_LOST
-						| BK4819_REG_3F_SQUELCH_FOUND
-						| BK4819_REG_3F_SQUELCH_LOST;
-					break;
-			}
-
-			if (gRxVfo->SCRAMBLING_TYPE > 0 && gSetting_ScrambleEnable)
-				BK4819_EnableScramble(gRxVfo->SCRAMBLING_TYPE - 1);
-			else
-				BK4819_DisableScramble();
-		}
-	}
-	#ifdef ENABLE_NOAA
-		else
+	if (gRxVfo->Modulation == MODULATION_FM)
+	{	// FM
+		uint8_t CodeType = gRxVfo->pRX->CodeType;
+		uint8_t Code     = gRxVfo->pRX->Code;
+		switch (CodeType)
 		{
-			BK4819_SetCTCSSFrequency(2625);
-			InterruptMask = 0
-				| BK4819_REG_3F_CTCSS_FOUND
-				| BK4819_REG_3F_CTCSS_LOST
-				| BK4819_REG_3F_SQUELCH_FOUND
-				| BK4819_REG_3F_SQUELCH_LOST;
+			default:
+			case CODE_TYPE_OFF:
+				// this only works as a setup function for REG_51
+				BK4819_SetCTCSSFrequency(CTCSS_Options[gEeprom.SQL_TONE]);
+				// and REG_07 is overwritten by this function
+				BK4819_SetTailDetection(CTCSS_Options[gEeprom.SQL_TONE]);
+
+				InterruptMask = BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
+				break;
+
+			case CODE_TYPE_CONTINUOUS_TONE:
+				BK4819_SetCTCSSFrequency(CTCSS_Options[Code]);
+
+				InterruptMask = 0
+					| BK4819_REG_3F_CxCSS_TAIL
+					| BK4819_REG_3F_CTCSS_FOUND
+					| BK4819_REG_3F_CTCSS_LOST
+					| BK4819_REG_3F_SQUELCH_FOUND
+					| BK4819_REG_3F_SQUELCH_LOST;
+
+				break;
+
+			case CODE_TYPE_DIGITAL:
+			case CODE_TYPE_REVERSE_DIGITAL:
+				BK4819_SetCDCSSCodeWord(DCS_GetGolayCodeWord(CodeType, Code));
+				InterruptMask = 0
+					| BK4819_REG_3F_CxCSS_TAIL
+					| BK4819_REG_3F_CDCSS_FOUND
+					| BK4819_REG_3F_CDCSS_LOST
+					| BK4819_REG_3F_SQUELCH_FOUND
+					| BK4819_REG_3F_SQUELCH_LOST;
+				break;
 		}
-	#endif
+
+		if (gRxVfo->SCRAMBLING_TYPE > 0 && gSetting_ScrambleEnable)
+			BK4819_EnableScramble(gRxVfo->SCRAMBLING_TYPE - 1);
+		else
+			BK4819_DisableScramble();
+	}
 
 	#ifdef ENABLE_VOX
-		#ifdef ENABLE_NOAA
-			#ifdef ENABLE_FMRADIO
-				if (gEeprom.VOX_SWITCH && !gFmRadioMode && !IS_NOAA_CHANNEL(gCurrentVfo->CHANNEL_SAVE) && gCurrentVfo->Modulation == MODULATION_FM)
-			#else
-				if (gEeprom.VOX_SWITCH && !IS_NOAA_CHANNEL(gCurrentVfo->CHANNEL_SAVE) && gCurrentVfo->Modulation == MODULATION_FM)
-			#endif
+		#ifdef ENABLE_FMRADIO
+			if (gEeprom.VOX_SWITCH && !gFmRadioMode && gCurrentVfo->Modulation == MODULATION_FM)
 		#else
-			#ifdef ENABLE_FMRADIO
-				if (gEeprom.VOX_SWITCH && !gFmRadioMode && gCurrentVfo->Modulation == MODULATION_FM)
-			#else
-				if (gEeprom.VOX_SWITCH && gCurrentVfo->Modulation == MODULATION_FM)
-			#endif
+			if (gEeprom.VOX_SWITCH && gCurrentVfo->Modulation == MODULATION_FM)
 		#endif
 		{
 			BK4819_EnableVox(gEeprom.VOX1_THRESHOLD, gEeprom.VOX0_THRESHOLD, gEeprom.VOX_DELAY);
@@ -754,7 +706,7 @@ void RADIO_SetupRegisters(bool switchToForeground)
 			MSG_EnableRX(true);
 			InterruptMask |= BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL | BK4819_REG_3F_FSK_TX_FINISHED;
 		}
-	#endif	
+	#endif
 
 	BK4819_WriteRegister(BK4819_REG_3F, InterruptMask);
 
@@ -764,54 +716,9 @@ void RADIO_SetupRegisters(bool switchToForeground)
 		FUNCTION_Select(FUNCTION_FOREGROUND);
 }
 
-#ifdef ENABLE_NOAA
-	void RADIO_ConfigureNOAA(void)
-	{
-		uint8_t ChanAB;
-
-		gUpdateStatus = true;
-
-		if (gEeprom.NOAA_AUTO_SCAN)
-		{
-			if (gEeprom.DUAL_WATCH != DUAL_WATCH_OFF)
-			{
-				if (!IS_NOAA_CHANNEL(gEeprom.ScreenChannel[0]))
-				{
-					if (!IS_NOAA_CHANNEL(gEeprom.ScreenChannel[1]))
-					{
-						gIsNoaaMode = false;
-						return;
-					}
-					ChanAB = 1;
-				}
-				else
-					ChanAB = 0;
-
-				if (!gIsNoaaMode)
-					gNoaaChannel = gEeprom.VfoInfo[ChanAB].CHANNEL_SAVE - NOAA_CHANNEL_FIRST;
-
-				gIsNoaaMode = true;
-				return;
-			}
-
-			if (gRxVfo->CHANNEL_SAVE >= NOAA_CHANNEL_FIRST)
-			{
-				gIsNoaaMode          = true;
-				gNoaaChannel         = gRxVfo->CHANNEL_SAVE - NOAA_CHANNEL_FIRST;
-				gNOAA_Countdown_10ms = NOAA_countdown_2_10ms;
-				gScheduleNOAA        = false;
-			}
-			else
-				gIsNoaaMode = false;
-		}
-		else
-			gIsNoaaMode = false;
-	}
-#endif
-
 void RADIO_SetTxParameters(void)
 {
-	
+
 	AUDIO_AudioPathOff();
 
 	gEnableSpeaker = false;
@@ -1110,7 +1017,7 @@ void RADIO_SendEndOfTransmission(bool playRoger)
 				gEeprom.DTMF_HASH_CODE_PERSIST_TIME,
 				gEeprom.DTMF_CODE_PERSIST_TIME,
 				gEeprom.DTMF_CODE_INTERVAL_TIME);
-		
+
 		AUDIO_AudioPathOff();
 		gEnableSpeaker = false;
 	}

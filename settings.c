@@ -39,20 +39,12 @@ void SETTINGS_SaveVfoIndices(void)
 {
 	uint8_t State[8];
 
-	#ifndef ENABLE_NOAA
-		EEPROM_ReadBuffer(0x0E80, State, sizeof(State));
-	#endif
-
 	State[0] = gEeprom.ScreenChannel[0];
 	State[1] = gEeprom.MrChannel[0];
 	State[2] = gEeprom.FreqChannel[0];
 	State[3] = gEeprom.ScreenChannel[1];
 	State[4] = gEeprom.MrChannel[1];
 	State[5] = gEeprom.FreqChannel[1];
-	#ifdef ENABLE_NOAA
-		State[6] = gEeprom.NoaaChannel[0];
-		State[7] = gEeprom.NoaaChannel[1];
-	#endif
 
 	EEPROM_WriteBuffer(0x0E80, State, true);
 }
@@ -64,11 +56,7 @@ void SETTINGS_SaveSettings(void)
 	State[0] = gEeprom.CHAN_1_CALL;
 	State[1] = gEeprom.SQUELCH_LEVEL;
 	State[2] = gEeprom.TX_TIMEOUT_TIMER;
-	#ifdef ENABLE_NOAA
-		State[3] = gEeprom.NOAA_AUTO_SCAN;
-	#else
-		State[3] = false;
-	#endif
+	State[3] = false;
 	State[4] = gEeprom.KEY_LOCK;
 	#ifdef ENABLE_VOX
 		State[5] = gEeprom.VOX_SWITCH;
@@ -196,66 +184,61 @@ void SETTINGS_SaveSettings(void)
 
 void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, uint8_t Mode)
 {
-	#ifdef ENABLE_NOAA
-		if (!IS_NOAA_CHANNEL(Channel))
-	#endif
-	{
-		uint16_t OffsetVFO = Channel * 16;
+	uint16_t OffsetVFO = Channel * 16;
 
-		if (!IS_MR_CHANNEL(Channel))
-		{	// it's a VFO, not a channel
-			OffsetVFO  = (VFO == 0) ? 0x0C80 : 0x0C90;
-			OffsetVFO += (Channel - FREQ_CHANNEL_FIRST) * 32;
-		}
+	if (!IS_MR_CHANNEL(Channel))
+	{	// it's a VFO, not a channel
+		OffsetVFO  = (VFO == 0) ? 0x0C80 : 0x0C90;
+		OffsetVFO += (Channel - FREQ_CHANNEL_FIRST) * 32;
+	}
 
-		if (Mode >= 2 || !IS_MR_CHANNEL(Channel))
-		{	// copy VFO to a channel
+	if (Mode >= 2 || !IS_MR_CHANNEL(Channel))
+	{	// copy VFO to a channel
 
-			uint8_t State[8];
+		uint8_t State[8];
 
-			((uint32_t *)State)[0] = pVFO->freq_config_RX.Frequency;
-			((uint32_t *)State)[1] = pVFO->TX_OFFSET_FREQUENCY;
-			EEPROM_WriteBuffer(OffsetVFO + 0, State, true);
+		((uint32_t *)State)[0] = pVFO->freq_config_RX.Frequency;
+		((uint32_t *)State)[1] = pVFO->TX_OFFSET_FREQUENCY;
+		EEPROM_WriteBuffer(OffsetVFO + 0, State, true);
 
-			State[0] =  pVFO->freq_config_RX.Code;
-			State[1] =  pVFO->freq_config_TX.Code;
-			State[2] = (pVFO->freq_config_TX.CodeType << 4) | pVFO->freq_config_RX.CodeType;
-			State[3] = (pVFO->Modulation << 4) | pVFO->TX_OFFSET_FREQUENCY_DIRECTION;
-			State[4] = 0
-				| (pVFO->BUSY_CHANNEL_LOCK << 4)
-				| (pVFO->OUTPUT_POWER      << 2)
-				| ((pVFO->CHANNEL_BANDWIDTH != BK4819_FILTER_BW_WIDE) << 1)
-				| (pVFO->FrequencyReverse  << 0);
-			if(pVFO->CHANNEL_BANDWIDTH != BK4819_FILTER_BW_WIDE)
-				State[4] |= ((pVFO->CHANNEL_BANDWIDTH - 1) << 5);
-			State[5] = ((pVFO->DTMF_PTT_ID_TX_MODE & 7u) << 1)
+		State[0] =  pVFO->freq_config_RX.Code;
+		State[1] =  pVFO->freq_config_TX.Code;
+		State[2] = (pVFO->freq_config_TX.CodeType << 4) | pVFO->freq_config_RX.CodeType;
+		State[3] = (pVFO->Modulation << 4) | pVFO->TX_OFFSET_FREQUENCY_DIRECTION;
+		State[4] = 0
+			| (pVFO->BUSY_CHANNEL_LOCK << 4)
+			| (pVFO->OUTPUT_POWER      << 2)
+			| ((pVFO->CHANNEL_BANDWIDTH != BK4819_FILTER_BW_WIDE) << 1)
+			| (pVFO->FrequencyReverse  << 0);
+		if(pVFO->CHANNEL_BANDWIDTH != BK4819_FILTER_BW_WIDE)
+			State[4] |= ((pVFO->CHANNEL_BANDWIDTH - 1) << 5);
+		State[5] = ((pVFO->DTMF_PTT_ID_TX_MODE & 7u) << 1)
 #ifdef ENABLE_DTMF_CALLING
-				| ((pVFO->DTMF_DECODING_ENABLE & 1u) << 0)
+			| ((pVFO->DTMF_DECODING_ENABLE & 1u) << 0)
 #endif
-			;
-			State[6] =  pVFO->STEP_SETTING;
-			State[7] =  pVFO->SCRAMBLING_TYPE;
-			EEPROM_WriteBuffer(OffsetVFO + 8, State, true);
+		;
+		State[6] =  pVFO->STEP_SETTING;
+		State[7] =  pVFO->SCRAMBLING_TYPE;
+		EEPROM_WriteBuffer(OffsetVFO + 8, State, true);
 
-			SETTINGS_UpdateChannel(Channel, pVFO, true);
+		SETTINGS_UpdateChannel(Channel, pVFO, true);
 
-			if (IS_MR_CHANNEL(Channel))
-			{	// it's a memory channel
+		if (IS_MR_CHANNEL(Channel))
+		{	// it's a memory channel
 
-				#ifndef ENABLE_KEEP_MEM_NAME
-					// clear/reset the channel name
-					SETTINGS_SaveChannelName(Channel, "");
-				#else
-					if (Mode >= 3) {
-						SETTINGS_SaveChannelName(Channel, pVFO->Name);
+			#ifndef ENABLE_KEEP_MEM_NAME
+				// clear/reset the channel name
+				SETTINGS_SaveChannelName(Channel, "");
+			#else
+				if (Mode >= 3) {
+					SETTINGS_SaveChannelName(Channel, pVFO->Name);
 
-						#ifdef ENABLE_SPECTRUM_SHOW_CHANNEL_NAME
-							//update channel names stored in memory
-							BOARD_gMR_LoadChannels();
-						#endif
-					}
-				#endif
-			}
+					#ifdef ENABLE_SPECTRUM_SHOW_CHANNEL_NAME
+						//update channel names stored in memory
+						BOARD_gMR_LoadChannels();
+					#endif
+				}
+			#endif
 		}
 	}
 }
@@ -320,40 +303,35 @@ void SETTINGS_FetchChannelName(char *s, const int channel)
 
 void SETTINGS_UpdateChannel(uint8_t channel, const VFO_Info_t *pVFO, bool keep)
 {
-#ifdef ENABLE_NOAA
-	if (!IS_NOAA_CHANNEL(channel))
-#endif
-	{
-		uint8_t  state[8];
-		ChannelAttributes_t  att = {
-			.band = 0xf,
-			.compander = 0,
-			.scanlist1 = 0,
-			.scanlist2 = 0,
-			};        // default attributes
+	uint8_t  state[8];
+	ChannelAttributes_t  att = {
+		.band = 0xf,
+		.compander = 0,
+		.scanlist1 = 0,
+		.scanlist2 = 0,
+		};        // default attributes
 
-		uint16_t offset = 0x0D60 + (channel & ~7u);
-		EEPROM_ReadBuffer(offset, state, sizeof(state));
+	uint16_t offset = 0x0D60 + (channel & ~7u);
+	EEPROM_ReadBuffer(offset, state, sizeof(state));
 
-		if (keep) {
-			att.band = pVFO->Band;
-			att.scanlist1 = pVFO->SCANLIST1_PARTICIPATION;
-			att.scanlist2 = pVFO->SCANLIST2_PARTICIPATION;
-			att.compander = pVFO->Compander;
-			if (state[channel & 7u] == att.__val)
-				return; // no change in the attributes
-		}
+	if (keep) {
+		att.band = pVFO->Band;
+		att.scanlist1 = pVFO->SCANLIST1_PARTICIPATION;
+		att.scanlist2 = pVFO->SCANLIST2_PARTICIPATION;
+		att.compander = pVFO->Compander;
+		if (state[channel & 7u] == att.__val)
+			return; // no change in the attributes
+	}
 
-		state[channel & 7u] = att.__val;
-		EEPROM_WriteBuffer(offset, state, true);
+	state[channel & 7u] = att.__val;
+	EEPROM_WriteBuffer(offset, state, true);
 
-		gMR_ChannelAttributes[channel] = att;
+	gMR_ChannelAttributes[channel] = att;
 
-		if (IS_MR_CHANNEL(channel)) {	// it's a memory channel
-			if (!keep) {
-				// clear/reset the channel name
-				SETTINGS_SaveChannelName(channel, "");
-			}
+	if (IS_MR_CHANNEL(channel)) {	// it's a memory channel
+		if (!keep) {
+			// clear/reset the channel name
+			SETTINGS_SaveChannelName(channel, "");
 		}
 	}
 }

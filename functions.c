@@ -50,16 +50,7 @@ FUNCTION_Type_t gCurrentFunction;
 
 void FUNCTION_Init(void)
 {
-#ifdef ENABLE_NOAA
-	if (!IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
-#endif
-	{
-		gCurrentCodeType = (gRxVfo->Modulation != MODULATION_FM) ? CODE_TYPE_OFF : gRxVfo->pRX->CodeType;
-	}
-#ifdef ENABLE_NOAA
-	else
-		gCurrentCodeType = CODE_TYPE_CONTINUOUS_TONE;
-#endif
+	gCurrentCodeType = (gRxVfo->Modulation != MODULATION_FM) ? CODE_TYPE_OFF : gRxVfo->pRX->CodeType;
 
 #ifdef ENABLE_DTMF_CALLING
 	DTMF_clear_RX();
@@ -82,12 +73,7 @@ void FUNCTION_Init(void)
 	gFoundCTCSSCountdown_10ms          = 0;
 	gFoundCDCSSCountdown_10ms          = 0;
 	gEndOfRxDetectedMaybe              = false;
-
-	#ifdef ENABLE_NOAA
-		gNOAACountdown_10ms = 0;
-	#endif
-
-	gUpdateStatus = true;
+	gUpdateStatus                      = true;
 }
 
 void FUNCTION_Select(FUNCTION_Type_t Function)
@@ -125,7 +111,7 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 				if (gFmRadioMode)
 					gFM_RestoreCountdown_10ms = fm_restore_countdown_10ms;
 			#endif
-			
+
 #ifdef ENABLE_DTMF_CALLING
 			if (gDTMF_CallState == DTMF_CALL_STATE_CALL_OUT ||
 			    gDTMF_CallState == DTMF_CALL_STATE_RECEIVED ||
@@ -153,7 +139,7 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 
 			gMonitor = false;
 
-			BK4819_DisableVox();			
+			BK4819_DisableVox();
 			BK4819_Sleep();
 
 			BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, false);
@@ -167,8 +153,8 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 
 		case FUNCTION_TRANSMIT:
 			#ifdef ENABLE_MESSENGER
-				MSG_EnableRX(false);	
-			#endif	
+				MSG_EnableRX(false);
+			#endif
 
 			// if DTMF is enabled when TX'ing, it changes the TX audio filtering !! .. 1of11
 			BK4819_DisableDTMF();
@@ -253,7 +239,7 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			else
 				BK4819_DisableScramble();
 
-			if (gSetting_backlight_on_tx_rx == BACKLIGHT_ON_TR_TX || 
+			if (gSetting_backlight_on_tx_rx == BACKLIGHT_ON_TR_TX ||
 			    gSetting_backlight_on_tx_rx == BACKLIGHT_ON_TR_TXRX)
 				BACKLIGHT_TurnOn();
 

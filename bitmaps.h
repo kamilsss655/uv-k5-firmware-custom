@@ -28,10 +28,6 @@ extern const uint8_t BITMAP_TDR2[9];
 	extern const uint8_t BITMAP_VoicePrompt[9];
 #endif
 
-#ifdef ENABLE_NOAA
-	extern const uint8_t BITMAP_NOAA[11];
-#endif
-
 extern const uint8_t BITMAP_Antenna[5];
 
 extern const uint8_t BITMAP_MARKER[8];
@@ -49,4 +45,3 @@ extern const uint8_t BITMAP_compand[6];
 #ifdef ENABLE_MESSENGER
 	extern const uint8_t BITMAP_NEWMSG[8];
 #endif
-

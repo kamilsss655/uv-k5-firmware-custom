@@ -32,7 +32,7 @@ extern const freq_band_table_t BX4819_band2;
 
 extern const freq_band_table_t frequencyBandTable[7];
 
-// 30Mhz defines start of HF band 
+// 30Mhz defines start of HF band
 #define HF_FREQUENCY 3000000
 
 typedef enum  {
@@ -48,35 +48,31 @@ typedef enum  {
 
 
 typedef enum {
-	STEP_2_5kHz, 
-	STEP_5kHz, 
-	STEP_6_25kHz, 
-	STEP_10kHz, 
-	STEP_12_5kHz, 
-	STEP_25kHz, 
+	STEP_2_5kHz,
+	STEP_5kHz,
+	STEP_6_25kHz,
+	STEP_10kHz,
+	STEP_12_5kHz,
+	STEP_25kHz,
 	STEP_8_33kHz,
-	STEP_0_01kHz,	
-	STEP_0_05kHz,	
-	STEP_0_1kHz, 
-	STEP_0_25kHz, 
-	STEP_0_5kHz, 
-	STEP_1kHz, 
-	STEP_1_25kHz, 
+	STEP_0_01kHz,
+	STEP_0_05kHz,
+	STEP_0_1kHz,
+	STEP_0_25kHz,
+	STEP_0_5kHz,
+	STEP_1kHz,
+	STEP_1_25kHz,
 	STEP_15kHz,
-	STEP_30kHz, 
-	STEP_50kHz, 
-	STEP_100kHz, 
-	STEP_125kHz, 
-	STEP_250kHz, 
+	STEP_30kHz,
+	STEP_50kHz,
+	STEP_100kHz,
+	STEP_125kHz,
+	STEP_250kHz,
 	STEP_500kHz,
 } STEP_Setting_t;
 
 
 extern const uint16_t  	gStepFrequencyTable[21];
-
-#ifdef ENABLE_NOAA
-	extern const uint32_t NoaaFrequencyTable[10];
-#endif
 
 FREQUENCY_Band_t FREQUENCY_GetBand(uint32_t Frequency);
 uint8_t          FREQUENCY_CalculateOutputPower(uint8_t TxpLow, uint8_t TxpMid, uint8_t TxpHigh, int32_t LowerLimit, int32_t Middle, int32_t UpperLimit, int32_t Frequency);

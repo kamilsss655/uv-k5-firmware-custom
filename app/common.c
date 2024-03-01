@@ -5,7 +5,7 @@
 #include "settings.h"
 #include "ui/ui.h"
 
-void COMMON_KeypadLockToggle() 
+void COMMON_KeypadLockToggle()
 {
 
     if (gScreenToDisplay != DISPLAY_MENU &&
@@ -24,7 +24,7 @@ void COMMON_KeypadLockToggle()
 
 void COMMON_SwitchVFOs()
 {
-#ifdef ENABLE_SCAN_RANGES    
+#ifdef ENABLE_SCAN_RANGES
     gScanRangeStart = 0;
 #endif
     gEeprom.TX_VFO ^= 1;
@@ -70,11 +70,7 @@ void COMMON_SwitchToChannelMode()
 
 void COMMON_SwitchVFOMode()
 {
-#ifdef ENABLE_NOAA
-    if (gEeprom.VFO_OPEN && !IS_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
-#else
     if (gEeprom.VFO_OPEN)
-#endif
     {
         if (IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE))
         {	// swap to frequency mode
