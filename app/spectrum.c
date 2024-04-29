@@ -104,7 +104,7 @@ SpectrumSettings settings = {stepsCount: STEPS_128,
                              scanStepIndex: S_STEP_25_0kHz,
                              frequencyChangeStep: 80000,
                              rssiTriggerLevel: 150,
-                             backlightState: true,
+                             backlightAlwaysOn: false,
                              bw: BK4819_FILTER_BW_WIDE,
                              listenBw: BK4819_FILTER_BW_WIDE,
                              modulationType: false,
@@ -395,6 +395,7 @@ static void ToggleAudio(bool on) {
 static void ToggleRX(bool on) {
   isListening = on;
 
+  BACKLIGHT_TurnOn();
   // turn on green led only if screen brightness is over 7
   if(gEeprom.BACKLIGHT_MAX > 7)
     BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, on);
@@ -412,6 +413,9 @@ static void ToggleRX(bool on) {
 
     // turn on CSS tail found interrupt
     BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_02_CxCSS_TAIL);
+
+    // keep backlight on as long as we are receiving
+    gBacklightCountdown = 0;
   } else
   {
     if(appMode!=CHANNEL_MODE)
@@ -621,11 +625,12 @@ static void ToggleListeningBW() {
 }
 
 static void ToggleBacklight() {
-  settings.backlightState = !settings.backlightState;
-  if (settings.backlightState) {
+  settings.backlightAlwaysOn = !settings.backlightAlwaysOn;
+  if (settings.backlightAlwaysOn) {
     BACKLIGHT_TurnOn();
   } else {
-    BACKLIGHT_TurnOff();
+    if (!isListening)
+      BACKLIGHT_TurnOff();
   }
 }
 
@@ -928,6 +933,9 @@ static void DrawArrow(uint8_t x) {
 }
 
 static void OnKeyDown(uint8_t key) {
+  if (!isListening)
+    BACKLIGHT_TurnOn();
+
   switch (key) {
   case KEY_3:
     UpdateDBMax(true);
@@ -1398,11 +1406,15 @@ static void UpdateListening() {
 }
 
 static void Tick() {
-
-#ifdef ENABLE_SCAN_RANGES
   if (gNextTimeslice_500ms) {
+    if (gBacklightCountdown > 0) {
+      if (--gBacklightCountdown == 0)
+				if (!settings.backlightAlwaysOn)
+					BACKLIGHT_TurnOff();   // turn backlight off
+	  }
     gNextTimeslice_500ms = false;
 
+#ifdef ENABLE_SCAN_RANGES
     // if a lot of steps then it takes long time
     // we don't want to wait for whole scan
     // listening has it's own timer

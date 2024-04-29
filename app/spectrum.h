@@ -140,7 +140,7 @@ typedef struct SpectrumSettings {
   int dbMin;
   int dbMax;  
   ModulationMode_t modulationType;
-  bool backlightState;
+  bool backlightAlwaysOn;
   int scanList;
 } SpectrumSettings;
 
