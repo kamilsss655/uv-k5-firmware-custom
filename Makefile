@@ -179,11 +179,12 @@ ifdef OS  # windows
     WHERE = where
     NULL_OUTPUT = nul
 else  # unix
+    UNIX := 0
     ifeq ($(shell uname), Linux)
-        UNIX := 1
+        UNIX = 1
     else
         ifeq ($(shell uname), Darwin)
-            UNIX := 1
+            UNIX = 1
         endif
     endif
 
