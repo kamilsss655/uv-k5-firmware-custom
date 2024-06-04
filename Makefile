@@ -173,18 +173,27 @@ else
 	TOP := $(shell pwd)
 endif
 
-ifdef OS # windows
-   RM = del /Q
-   FixPath = $(subst /,\,$1)
-   WHERE = where
-   NULL_OUTPUT = nul
-else # unix
-   ifeq ($(shell uname), Linux)
-      RM = rm -f
-      FixPath = $1
-	  WHERE = which
-	  NULL_OUTPUT = /dev/null
-   endif
+ifdef OS  # windows
+    RM = del /Q
+    FixPath = $(subst /,\,$1)
+    WHERE = where
+    NULL_OUTPUT = nul
+else  # unix
+    UNIX := 0
+    ifeq ($(shell uname), Linux)
+        UNIX = 1
+    else
+        ifeq ($(shell uname), Darwin)
+            UNIX = 1
+        endif
+    endif
+
+    ifeq ($(UNIX),1)
+        RM = rm -f
+        FixPath = $1
+        WHERE = which
+        NULL_OUTPUT = /dev/null
+    endif
 endif
 
 AS = arm-none-eabi-gcc
