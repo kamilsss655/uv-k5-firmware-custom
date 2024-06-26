@@ -33,14 +33,16 @@
 #include "settings.h"
 #include "ui/ui.h"
 
-const uint16_t FM_RADIO_MAX_FREQ = 1080; // 108  Mhz
-const uint16_t FM_RADIO_MIN_FREQ = 875;  // 87.5 Mhz
+const uint16_t FM_RADIO_MAX_FREQ = 1080; // 108.0  Mhz
+const uint16_t FM_RADIO_MIN_FREQ = 760;  // 76.0 Mhz
 
 bool              gFmRadioMode;
 uint8_t           gFmRadioCountdown_500ms;
 volatile uint16_t gFmPlayCountdown_10ms;
 volatile int8_t   gFM_ScanState;
 uint16_t          gFM_RestoreCountdown_10ms;
+uint16_t st;
+uint16_t fr;
 
 void FM_TurnOff(void)
 {
@@ -65,17 +67,38 @@ static void Key_EXIT()
 
 static void Key_UP_DOWN(bool direction)
 {
-	BK1080_TuneNext(direction);
-	gEeprom.FM_FrequencyPlaying = BK1080_GetFrequency();
-	// save
-	gRequestSaveSettings = true;
+	fr=gEeprom.FM_FrequencyPlaying;
+if(direction){
+	st=0+1;
 }
+else{
+	st=0-1;
+}
+fr=fr+st;
+if(fr>FM_RADIO_MAX_FREQ){
+	fr=FM_RADIO_MIN_FREQ;
+}
+if(fr<FM_RADIO_MIN_FREQ){
+	fr=FM_RADIO_MAX_FREQ;
+}
+gEeprom.FM_FrequencyPlaying=fr;
+gRequestSaveSettings = true;
+BK1080_SetFrequency(fr);
+
+//	BK1080_TuneNext(direction);
+//	gEeprom.FM_FrequencyPlaying = BK1080_GetFrequency();
+//	// save
+//	gRequestSaveSettings = true;
+}
+
+
 
 void FM_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 {	
 	uint8_t state = bKeyPressed + 2 * bKeyHeld;
+	//uint8_t state = 0;
 
-	if (state == 0) {
+	if (state > 0) { //NOT == 0
 		switch (Key)
 		{	
 			case KEY_UP:

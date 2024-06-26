@@ -52,7 +52,8 @@ typedef enum {
 	STEP_5kHz, 
 	STEP_6_25kHz, 
 	STEP_10kHz, 
-	STEP_12_5kHz, 
+	STEP_12_5kHz,
+	STEP_20kHz, 
 	STEP_25kHz, 
 	STEP_8_33kHz,
 	STEP_0_01kHz,	
@@ -72,7 +73,7 @@ typedef enum {
 } STEP_Setting_t;
 
 
-extern const uint16_t  	gStepFrequencyTable[21];
+extern const uint16_t  	gStepFrequencyTable[22];
 
 #ifdef ENABLE_NOAA
 	extern const uint32_t NoaaFrequencyTable[10];
