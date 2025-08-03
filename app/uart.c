@@ -4,6 +4,11 @@
  * Modified work Copyright 2024 kamilsss655
  * https://github.com/kamilsss655
  *
+ * Modified work Copyright 2025 dobrishinov
+ * https://github.com/dobrishinov
+ * Note: I hereby authorize the use of my modifications in this code within the premium firmware,
+ * without any limitations on its application, including for closed-source or commercial purposes.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +40,7 @@
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
+#include "driver/system.h"
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"
@@ -157,6 +163,9 @@ static union
 
 static uint32_t Timestamp;
 static uint16_t gUART_WriteIndex;
+#if defined(ENABLE_MESSENGER) && defined(ENABLE_MESSENGER_UART)
+static uint16_t gUART_SMSWriteIndex;
+#endif
 static bool     bIsEncrypted = true;
 
 static void SendReply(void *pReply, uint16_t Size)
@@ -363,6 +372,89 @@ static void CMD_052F(const uint8_t *pBuffer)
 	SendVersion();
 }
 
+#if defined(ENABLE_MESSENGER) && defined(ENABLE_MESSENGER_UART)
+// UART_PrintBufferSlice is a helper function to print: DMA Buffer Content
+void UART_PrintBufferSlice(const char* label, const char* buffer, size_t startIndex, size_t length) {
+	UART_printf("%s[", label);
+	for (size_t i = 0; i < length; ++i) {
+		char c = buffer[DMA_INDEX(startIndex, i)];
+		if (c >= 32 && c <= 126) {
+			UART_printf("%c", c); // printable ASCII
+		} else {
+			UART_printf(".");     // unprintable shown as dot
+		}
+	}
+	UART_printf("], BufferIndex: [%d/256] \r\n", startIndex);
+}
+
+void UART_IsSMSAvailable(void)
+{
+	uint16_t DmaLength = DMA_CH0->ST & 0xFFFU;
+
+	while (1)
+	{
+		if (gUART_SMSWriteIndex == DmaLength)
+			break;
+
+		if (strncmp(((char*)UART_DMA_Buffer) + gUART_SMSWriteIndex, "SMS:", 4) == 0)
+		{	
+			UART_PrintBufferSlice("[UART Message]", (char*)UART_DMA_Buffer, gUART_SMSWriteIndex, PAYLOAD_LENGTH + 4);
+
+			char txMessage[PAYLOAD_LENGTH + 1]; // +1 for null-terminator
+			memset(txMessage, 0, sizeof(txMessage));
+
+			// Extract message after "SMS:" prefix
+			size_t copyLength = 0;
+			for (size_t i = 0; i < PAYLOAD_LENGTH; i++) {
+				char c = UART_DMA_Buffer[DMA_INDEX(gUART_SMSWriteIndex + 4, i)];
+
+				// Stop at end of message markers or non-printable ASCII characters
+				if (c == '\0' || c == '\r' || c == '\n' || c < 32 || c > 126) {
+					break;
+				}
+
+				txMessage[copyLength++] = c;
+			}
+
+			// Ensure null-termination (redundant due to memset, but safe)
+			txMessage[copyLength] = '\0';
+
+			// Only send if there's actual content
+			if (copyLength > 0) {
+				MSG_Send(txMessage);
+				/*
+				* In order to print message to the Serial when we also type message from keyboard 
+				* I moved the UART_printf("SMS>%s\r\n", txMessage); to MSG_SendPacket method in app/messenger.c
+				*/
+				//UART_printf("SMS>%s\r\n", txMessage);
+				gUpdateDisplay = true;
+			}
+
+			// Debug log before clearing
+			//UART_printf("Debug: Clearing Buffer from WriteIndex: %d, Length: %d\r\n", gUART_SMSWriteIndex, PAYLOAD_LENGTH + 4);
+
+			// Clear full region even if copyLength was short (to avoid leftover data)
+			for (size_t i = 0; i < PAYLOAD_LENGTH + 4; i++) {
+				UART_DMA_Buffer[DMA_INDEX(gUART_SMSWriteIndex, i)] = 0;
+			}
+			
+			// Debug log before Before Update WriteIndex
+			//UART_printf("Debug: Before Update WriteIndex: %d\r\n", gUART_SMSWriteIndex);
+
+			// Update write index
+			gUART_SMSWriteIndex = DMA_INDEX(gUART_SMSWriteIndex, PAYLOAD_LENGTH + 4); // Always skip 4 + max payload
+
+			// Debug log after Before Update WriteIndex
+			//UART_printf("Debug: After Update WriteIndex: %d\r\n", gUART_SMSWriteIndex);
+		}
+
+		gUART_SMSWriteIndex = DmaLength;
+
+		break; 
+	}
+}
+#endif
+
 bool UART_IsCommandAvailable(void)
 {
 	uint16_t Index;
@@ -376,29 +468,7 @@ bool UART_IsCommandAvailable(void)
 	{
 		if (gUART_WriteIndex == DmaLength)
 			return false;
-
-#if defined(ENABLE_MESSENGER) && defined(ENABLE_MESSENGER_UART)
-    if (strncmp(((char*)UART_DMA_Buffer) + gUART_WriteIndex, "SMS:",4) == 0)
-    {
-
-      char txMessage[PAYLOAD_LENGTH + 4];
-      memset(txMessage, 0, sizeof(txMessage));
-      snprintf(txMessage, (PAYLOAD_LENGTH + 4), "%s", &UART_DMA_Buffer[gUART_WriteIndex + 4]);
-
-			for (int i = 0; txMessage[i] != '\0'; i++)
-			{
-				if (txMessage[i] == '\r' || txMessage[i] == '\n')
-					txMessage[i] = '\0';
-			}
-      if (strlen(txMessage) > 0)
-      {
-        MSG_Send(txMessage);
-        UART_printf("SMS>%s\r\n", txMessage);
-        gUpdateDisplay = true;
-      }
-    }
-
-#endif
+		
 		while (gUART_WriteIndex != DmaLength && UART_DMA_Buffer[gUART_WriteIndex] != 0xABU)
 			gUART_WriteIndex = DMA_INDEX(gUART_WriteIndex, 1);
 

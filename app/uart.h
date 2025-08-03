@@ -4,6 +4,11 @@
  * Modified work Copyright 2024 kamilsss655
  * https://github.com/kamilsss655
  *
+ * Modified work Copyright 2025 dobrishinov
+ * https://github.com/dobrishinov
+ * Note: I hereby authorize the use of my modifications in this code within the premium firmware,
+ * without any limitations on its application, including for closed-source or commercial purposes.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +27,9 @@
 
 #include <stdbool.h>
 
+#if defined(ENABLE_MESSENGER) && defined(ENABLE_MESSENGER_UART)
+void UART_IsSMSAvailable(void);
+#endif
 bool UART_IsCommandAvailable(void);
 void UART_HandleCommand(void);
 
